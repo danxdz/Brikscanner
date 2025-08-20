@@ -2,6 +2,31 @@
 
 A React Native app built with Expo that scans barcodes and identifies F1 car models.
 
+## 🚀 Deploy to CodeSandbox
+
+### Option 1: Import from GitHub
+1. Push this repository to GitHub
+2. Go to [CodeSandbox](https://codesandbox.io)
+3. Click "Create Sandbox" → "Import from GitHub"
+4. Paste your repository URL
+5. CodeSandbox will automatically detect it as an Expo project
+
+### Option 2: Manual Upload
+1. Go to [CodeSandbox](https://codesandbox.io)
+2. Click "Create Sandbox" → "Upload Project"
+3. Upload this entire project folder
+4. Select "Node" as the template if prompted
+
+### Option 3: Direct Link (After GitHub Push)
+Use this URL format: `https://codesandbox.io/s/github/[YOUR-USERNAME]/[REPO-NAME]`
+
+## 📝 Important CodeSandbox Notes
+
+- **Camera Access**: The camera functionality requires HTTPS. CodeSandbox provides HTTPS by default.
+- **Browser Support**: Works best in Chrome, Firefox, or Edge. Safari may have limited camera support.
+- **Permissions**: Users will need to grant camera permissions when prompted by the browser.
+- **Web Limitations**: Some Expo features may work differently in web vs native. The app is optimized for web deployment on CodeSandbox.
+
 ## Features
 
 - 📱 **Barcode/QR Code scanning** with camera
