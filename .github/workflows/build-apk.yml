@@ -16,10 +16,10 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '18'
-        cache: 'npm'
     
     - name: Install dependencies
-      run: npm ci
+      run: |
+        npm install
     
     - name: Set up JDK 17
       uses: actions/setup-java@v4
@@ -30,27 +30,23 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
     
+    - name: Accept Android licenses
+      run: |
+        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+    
     - name: Generate Android project
-      run: npx expo prebuild -p android --clean
+      run: |
+        npx expo prebuild -p android --clean
     
     - name: Build Debug APK
       run: |
         cd android
         chmod +x gradlew
-        ./gradlew assembleDebug
+        ./gradlew assembleDebug --no-daemon --stacktrace
     
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: app-debug
+        name: f1-scanner-debug
         path: android/app/build/outputs/apk/debug/app-debug.apk
-    
-    - name: Create Release
-      uses: softprops/action-gh-release@v1
-      with:
-        tag_name: v${{ github.run_number }}
-        name: Release Build ${{ github.run_number }}
-        draft: false
-        prerelease: false
-        files: android/app/build/outputs/apk/debug/app-debug.apk
-        token: ${{ secrets.GITHUB_TOKEN }}
+        retention-days: 30
