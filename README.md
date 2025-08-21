@@ -2,21 +2,25 @@
 
 A React Native app built with Expo that scans barcodes and identifies F1 car models.
 
-## 🚀 Quick Deploy & Build
+## 🌐 Try It NOW - Works on ALL Devices!
 
-### ☁️ Cloud Build Services (No Setup Required!)
+### 🚀 Instant Web App (No Install Required!)
+
+[![Open Web App](https://img.shields.io/badge/🌐%20Open%20Web%20App-Live%20Now!-success?style=for-the-badge)](https://danxdz.github.io/Brikscanner)
+
+[![Deploy to Netlify](https://img.shields.io/badge/Deploy%20to-Netlify-00C7B7?style=for-the-badge&logo=netlify&logoColor=white)](https://app.netlify.com/start/deploy?repository=https://github.com/danxdz/Brikscanner)
+
+[![Deploy to Vercel](https://img.shields.io/badge/Deploy%20to-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com/new/clone?repository-url=https://github.com/danxdz/Brikscanner)
+
+[![Open in CodeSandbox](https://img.shields.io/badge/Open%20in-CodeSandbox-040404?style=for-the-badge&logo=codesandbox&logoColor=DBDBDB)](https://codesandbox.io/s/github/danxdz/Brikscanner)
+
+### ☁️ Build Native Apps
 
 [![Build with Expo EAS](https://img.shields.io/badge/Build%20with-Expo%20EAS-000020?style=for-the-badge&logo=expo&logoColor=white)](https://expo.dev/accounts/danxdz/projects/f1-barcode-scanner/builds)
 
 [![Deploy to Codemagic](https://img.shields.io/badge/Deploy%20to-Codemagic-F7DF1E?style=for-the-badge&logo=codemagic&logoColor=black)](https://codemagic.io/apps/new?repo=https://github.com/danxdz/Brikscanner)
 
-[![Build on Appcircle](https://img.shields.io/badge/Build%20on-Appcircle-FF6B6B?style=for-the-badge&logo=appcircle&logoColor=white)](https://my.appcircle.io/build/new?repo=https://github.com/danxdz/Brikscanner)
-
-[![Open in CodeSandbox](https://img.shields.io/badge/Open%20in-CodeSandbox-040404?style=for-the-badge&logo=codesandbox&logoColor=DBDBDB)](https://codesandbox.io/s/github/danxdz/Brikscanner)
-
 [![Open in Gitpod](https://img.shields.io/badge/Open%20in-Gitpod-1966D2?style=for-the-badge&logo=gitpod&logoColor=white)](https://gitpod.io/#https://github.com/danxdz/Brikscanner)
-
-[![Open in GitHub Codespaces](https://img.shields.io/badge/Open%20in-GitHub%20Codespaces-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/codespaces/new?repo=danxdz/Brikscanner)
 
 ### 📱 Direct APK Download
 

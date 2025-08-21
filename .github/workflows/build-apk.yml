@@ -44,7 +44,27 @@ jobs:
         chmod +x gradlew
         ./gradlew assembleDebug --no-daemon --stacktrace
     
-    - name: Upload APK
+    - name: Sign APK
+      run: |
+        cd android/app/build/outputs/apk/debug/
+        # Generate a debug keystore
+        keytool -genkey -v -keystore debug.keystore -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 -storepass android -keypass android -dname "CN=Android Debug,O=Android,C=US" -noprompt
+        # Sign the APK
+        jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore debug.keystore -storepass android app-debug.apk androiddebugkey
+        # Verify signing
+        jarsigner -verify app-debug.apk
+        # Align the APK
+        $ANDROID_HOME/build-tools/34.0.0/zipalign -v 4 app-debug.apk app-debug-aligned.apk || cp app-debug.apk app-debug-aligned.apk
+        mv app-debug-aligned.apk f1-scanner-signed.apk
+    
+    - name: Upload Signed APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: f1-scanner-signed
+        path: android/app/build/outputs/apk/debug/f1-scanner-signed.apk
+        retention-days: 30
+    
+    - name: Upload Original APK
       uses: actions/upload-artifact@v4
       with:
         name: f1-scanner-debug
