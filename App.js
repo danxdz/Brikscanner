@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform, Dimensions, Animated } from 'react-native';
-import { CameraView, Camera, CameraType } from 'expo-camera';
+import { CameraView, Camera } from 'expo-camera';
 import { StatusBar } from 'expo-status-bar';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -71,7 +71,7 @@ export default function App() {
   const [zoom, setZoom] = useState(0);
   const [flashOn, setFlashOn] = useState(false);
   const [f1Model, setF1Model] = useState(null);
-  const [cameraFacing, setCameraFacing] = useState(CameraType.back);
+  const [cameraFacing, setCameraFacing] = useState('back');
   const [isSwitching, setIsSwitching] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
@@ -132,7 +132,7 @@ export default function App() {
   };
 
   const toggleFlash = () => {
-    if (cameraFacing === CameraType.back) {
+    if (cameraFacing === 'back') {
       setFlashOn((prev) => !prev);
     }
   };
@@ -145,10 +145,10 @@ export default function App() {
     // Add a small delay to prevent rapid switching
     setTimeout(() => {
       setCameraFacing(current => 
-        current === CameraType.back ? CameraType.front : CameraType.back
+        current === 'back' ? 'front' : 'back'
       );
       // Turn off flash when switching to front camera
-      if (cameraFacing === CameraType.back) {
+      if (cameraFacing === 'back') {
         setFlashOn(false);
       }
       
@@ -196,7 +196,7 @@ export default function App() {
           facing={cameraFacing}
           onBarcodeScanned={scanned || isSwitching ? undefined : handleBarcodeScanned}
           zoom={zoom}
-          enableTorch={flashOn && cameraFacing === CameraType.back}
+          enableTorch={flashOn && cameraFacing === 'back'}
           barcodeScannerSettings={{
             barcodeTypes: ["qr", "pdf417", "code128", "code39", "code93", "codabar", "ean13", "ean8", "upc_e", "datamatrix", "aztec"],
           }}
@@ -226,7 +226,7 @@ export default function App() {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>🏎️ F1 Scanner</Text>
         <Text style={styles.headerSubtitle}>
-          {cameraFacing === CameraType.back ? 'Back Camera' : 'Front Camera'}
+          {cameraFacing === 'back' ? 'Back Camera' : 'Front Camera'}
         </Text>
       </View>
       
@@ -246,11 +246,11 @@ export default function App() {
             {isSwitching ? '⏳' : '🔄'}
           </Text>
           <Text style={styles.controlLabel}>
-            {isSwitching ? 'Wait...' : (cameraFacing === CameraType.back ? 'Front' : 'Back')}
+            {isSwitching ? 'Wait...' : (cameraFacing === 'back' ? 'Front' : 'Back')}
           </Text>
         </TouchableOpacity>
         
-        {cameraFacing === CameraType.back && (
+        {cameraFacing === 'back' && (
           <TouchableOpacity 
             style={[styles.controlButton, flashOn && styles.controlButtonActive]} 
             onPress={toggleFlash}
