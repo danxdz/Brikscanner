@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform, Dimensions } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Platform, Dimensions, Animated } from 'react-native';
 import { CameraView, Camera } from 'expo-camera';
 import { StatusBar } from 'expo-status-bar';
 
@@ -8,60 +8,60 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 // F1 Car Models Lookup Table - Each model has 2 separate codes
 const F1_CODE_LOOKUP = {
   // Ferrari
-  '6536841': { model: 'Ferrari', codeType: 'Code 1', otherCode: '6538305' },
-  '6538305': { model: 'Ferrari', codeType: 'Code 2', otherCode: '6536841' },
+  '6536841': { model: 'Ferrari', codeType: 'Code 1', otherCode: '6538305', color: '#DC0000' },
+  '6538305': { model: 'Ferrari', codeType: 'Code 2', otherCode: '6536841', color: '#DC0000' },
   
   // RB20
-  '6536842': { model: 'RB20', codeType: 'Code 1', otherCode: '6538306' },
-  '6538306': { model: 'RB20', codeType: 'Code 2', otherCode: '6536842' },
+  '6536842': { model: 'RB20', codeType: 'Code 1', otherCode: '6538306', color: '#1E41FF' },
+  '6538306': { model: 'RB20', codeType: 'Code 2', otherCode: '6536842', color: '#1E41FF' },
   
   // Mercedes-AMG
-  '6536843': { model: 'Mercedes-AMG', codeType: 'Code 1', otherCode: '6538307' },
-  '6538307': { model: 'Mercedes-AMG', codeType: 'Code 2', otherCode: '6536843' },
+  '6536843': { model: 'Mercedes-AMG', codeType: 'Code 1', otherCode: '6538307', color: '#00D2BE' },
+  '6538307': { model: 'Mercedes-AMG', codeType: 'Code 2', otherCode: '6536843', color: '#00D2BE' },
   
   // Aston Martin
-  '6536844': { model: 'Aston Martin', codeType: 'Code 1', otherCode: '6538308' },
-  '6538308': { model: 'Aston Martin', codeType: 'Code 2', otherCode: '6536844' },
+  '6536844': { model: 'Aston Martin', codeType: 'Code 1', otherCode: '6538308', color: '#006F62' },
+  '6538308': { model: 'Aston Martin', codeType: 'Code 2', otherCode: '6536844', color: '#006F62' },
   
   // VCARB
-  '6536845': { model: 'VCARB', codeType: 'Code 1', otherCode: '6538309' },
-  '6538309': { model: 'VCARB', codeType: 'Code 2', otherCode: '6536845' },
+  '6536845': { model: 'VCARB', codeType: 'Code 1', otherCode: '6538309', color: '#2B4562' },
+  '6538309': { model: 'VCARB', codeType: 'Code 2', otherCode: '6536845', color: '#2B4562' },
   
   // Sauber
-  '6536846': { model: 'Sauber', codeType: 'Code 1', otherCode: '6538310' },
-  '6538310': { model: 'Sauber', codeType: 'Code 2', otherCode: '6536846' },
+  '6536846': { model: 'Sauber', codeType: 'Code 1', otherCode: '6538310', color: '#00E701' },
+  '6538310': { model: 'Sauber', codeType: 'Code 2', otherCode: '6536846', color: '#00E701' },
   
   // Alpine
-  '6536847': { model: 'Alpine', codeType: 'Code 1', otherCode: '6538311' },
-  '6538311': { model: 'Alpine', codeType: 'Code 2', otherCode: '6536847' },
+  '6536847': { model: 'Alpine', codeType: 'Code 1', otherCode: '6538311', color: '#0090FF' },
+  '6538311': { model: 'Alpine', codeType: 'Code 2', otherCode: '6536847', color: '#0090FF' },
   
   // Williams
-  '6536848': { model: 'Williams', codeType: 'Code 1', otherCode: '6538312' },
-  '6538312': { model: 'Williams', codeType: 'Code 2', otherCode: '6536848' },
+  '6536848': { model: 'Williams', codeType: 'Code 1', otherCode: '6538312', color: '#005AFF' },
+  '6538312': { model: 'Williams', codeType: 'Code 2', otherCode: '6536848', color: '#005AFF' },
   
   // Haas
-  '6536849': { model: 'Haas', codeType: 'Code 1', otherCode: '6538313' },
-  '6538313': { model: 'Haas', codeType: 'Code 2', otherCode: '6536849' },
+  '6536849': { model: 'Haas', codeType: 'Code 1', otherCode: '6538313', color: '#FFFFFF' },
+  '6538313': { model: 'Haas', codeType: 'Code 2', otherCode: '6536849', color: '#FFFFFF' },
   
   // McLaren
-  '6536850': { model: 'McLaren', codeType: 'Code 1', otherCode: '6538314' },
-  '6538314': { model: 'McLaren', codeType: 'Code 2', otherCode: '6536850' },
+  '6536850': { model: 'McLaren', codeType: 'Code 1', otherCode: '6538314', color: '#FF8700' },
+  '6538314': { model: 'McLaren', codeType: 'Code 2', otherCode: '6536850', color: '#FF8700' },
   
   // F1
-  '6536851': { model: 'F1', codeType: 'Code 1', otherCode: '6538315' },
-  '6538315': { model: 'F1', codeType: 'Code 2', otherCode: '6536851' },
+  '6536851': { model: 'F1', codeType: 'Code 1', otherCode: '6538315', color: '#FF1801' },
+  '6538315': { model: 'F1', codeType: 'Code 2', otherCode: '6536851', color: '#FF1801' },
   
   // Pirelli
-  '6536852': { model: 'Pirelli', codeType: 'Code 1', otherCode: '6538316' },
-  '6538316': { model: 'Pirelli', codeType: 'Code 2', otherCode: '6536852' },
+  '6536852': { model: 'Pirelli', codeType: 'Code 1', otherCode: '6538316', color: '#FFD800' },
+  '6538316': { model: 'Pirelli', codeType: 'Code 2', otherCode: '6536852', color: '#FFD800' },
   
   // Silverstone
-  '6536853': { model: 'Silverstone', codeType: 'Code 1', otherCode: '6538317' },
-  '6538317': { model: 'Silverstone', codeType: 'Code 2', otherCode: '6536853' },
+  '6536853': { model: 'Silverstone', codeType: 'Code 1', otherCode: '6538317', color: '#DA291C' },
+  '6538317': { model: 'Silverstone', codeType: 'Code 2', otherCode: '6536853', color: '#DA291C' },
   
   // Monaco
-  '6536854': { model: 'Monaco', codeType: 'Code 1', otherCode: '6538318' },
-  '6538318': { model: 'Monaco', codeType: 'Code 2', otherCode: '6536854' },
+  '6536854': { model: 'Monaco', codeType: 'Code 1', otherCode: '6538318', color: '#CE1126' },
+  '6538318': { model: 'Monaco', codeType: 'Code 2', otherCode: '6536854', color: '#CE1126' },
 };
 
 export default function App() {
@@ -71,7 +71,10 @@ export default function App() {
   const [zoom, setZoom] = useState(0);
   const [flashOn, setFlashOn] = useState(false);
   const [f1Model, setF1Model] = useState(null);
-  const [facing, setFacing] = useState('back');
+  const [cameraType, setCameraType] = useState('back');
+  const [cameraKey, setCameraKey] = useState(0);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(50)).current;
 
   useEffect(() => {
     (async () => {
@@ -79,6 +82,27 @@ export default function App() {
       setHasPermission(status === 'granted');
     })();
   }, []);
+
+  useEffect(() => {
+    if (scanned) {
+      // Animate result card appearance
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else {
+      fadeAnim.setValue(0);
+      slideAnim.setValue(50);
+    }
+  }, [scanned]);
 
   const getF1Model = (code) => {
     const modelInfo = F1_CODE_LOOKUP[code];
@@ -88,7 +112,8 @@ export default function App() {
         scannedCode: code,
         scannedCodeType: modelInfo.codeType,
         otherCode: modelInfo.otherCode,
-        otherCodeType: modelInfo.codeType === 'Code 1' ? 'Code 2' : 'Code 1'
+        otherCodeType: modelInfo.codeType === 'Code 1' ? 'Code 2' : 'Code 1',
+        color: modelInfo.color
       };
     }
     return null;
@@ -104,11 +129,23 @@ export default function App() {
   };
 
   const toggleFlash = () => setFlashOn((prev) => !prev);
-  const toggleCamera = () => setFacing(current => (current === 'back' ? 'front' : 'back'));
+  
+  const toggleCamera = () => {
+    // Force camera recreation by changing key
+    setCameraType(current => current === 'back' ? 'front' : 'back');
+    setCameraKey(prev => prev + 1);
+  };
+
+  const resetScanner = () => {
+    setScanned(false);
+    setData('');
+    setF1Model(null);
+  };
 
   if (hasPermission === null) {
     return (
       <View style={styles.centeredContainer}>
+        <Text style={styles.loadingIcon}>📸</Text>
         <Text style={styles.permissionText}>Requesting camera permission...</Text>
       </View>
     );
@@ -117,6 +154,7 @@ export default function App() {
   if (hasPermission === false) {
     return (
       <View style={styles.centeredContainer}>
+        <Text style={styles.errorIcon}>🚫</Text>
         <Text style={styles.permissionText}>No camera access</Text>
         <Text style={styles.subText}>Please enable camera access in settings</Text>
       </View>
@@ -128,84 +166,108 @@ export default function App() {
       <StatusBar style="light" />
       
       <CameraView
+        key={cameraKey}
         style={styles.scanner}
-        facing={facing}
+        facing={cameraType}
         onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
         zoom={zoom}
-        enableTorch={flashOn && facing === 'back'}
+        enableTorch={flashOn && cameraType === 'back'}
         barcodeScannerSettings={{
           barcodeTypes: ["qr", "pdf417", "code128", "code39", "code93", "codabar", "ean13", "ean8", "upc_e", "datamatrix", "aztec"],
         }}
       />
       
+      {/* Gradient Overlay */}
+      <View style={styles.gradientTop} />
+      <View style={styles.gradientBottom} />
+      
       {/* Scan Frame Overlay */}
-      <View style={styles.overlay}>
-        <View style={styles.scanFrame}>
-          <View style={[styles.corner, styles.topLeft]} />
-          <View style={[styles.corner, styles.topRight]} />
-          <View style={[styles.corner, styles.bottomLeft]} />
-          <View style={[styles.corner, styles.bottomRight]} />
+      {!scanned && (
+        <View style={styles.overlay}>
+          <View style={styles.scanFrame}>
+            <View style={[styles.corner, styles.topLeft]} />
+            <View style={[styles.corner, styles.topRight]} />
+            <View style={[styles.corner, styles.bottomLeft]} />
+            <View style={[styles.corner, styles.bottomRight]} />
+            <Text style={styles.scanHint}>Align barcode within frame</Text>
+          </View>
         </View>
+      )}
+      
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>🏎️ F1 Scanner</Text>
+        <Text style={styles.headerSubtitle}>Scan your F1 model codes</Text>
       </View>
       
       {/* Top Controls */}
       <View style={styles.topControls}>
-        <TouchableOpacity style={styles.controlButton} onPress={toggleCamera}>
+        <TouchableOpacity 
+          style={[styles.controlButton, styles.controlButtonPrimary]} 
+          onPress={toggleCamera}
+          activeOpacity={0.8}
+        >
           <Text style={styles.controlIcon}>🔄</Text>
-          <Text style={styles.controlLabel}>Switch</Text>
+          <Text style={styles.controlLabel}>{cameraType === 'back' ? 'Front' : 'Back'}</Text>
         </TouchableOpacity>
         
-        {facing === 'back' && (
-          <TouchableOpacity style={styles.controlButton} onPress={toggleFlash}>
+        {cameraType === 'back' && (
+          <TouchableOpacity 
+            style={[styles.controlButton, flashOn && styles.controlButtonActive]} 
+            onPress={toggleFlash}
+            activeOpacity={0.8}
+          >
             <Text style={styles.controlIcon}>{flashOn ? '🔦' : '💡'}</Text>
-            <Text style={styles.controlLabel}>{flashOn ? 'Flash ON' : 'Flash OFF'}</Text>
+            <Text style={styles.controlLabel}>Flash</Text>
           </TouchableOpacity>
         )}
       </View>
       
       {/* Bottom Container */}
-      <View style={styles.bottomContainer}>
+      <View style={[styles.bottomContainer, scanned && styles.bottomContainerExpanded]}>
         {/* Zoom Controls */}
         {!scanned && (
           <View style={styles.zoomContainer}>
             <TouchableOpacity 
               style={styles.zoomButton} 
               onPress={() => setZoom(Math.max(0, zoom - 0.1))}
+              activeOpacity={0.7}
             >
               <Text style={styles.zoomButtonText}>−</Text>
             </TouchableOpacity>
             
-            <View style={styles.zoomInfo}>
-              <Text style={styles.zoomLabel}>Zoom</Text>
-              <Text style={styles.zoomValue}>{(zoom * 100).toFixed(0)}%</Text>
-            </View>
-            
-            <View style={styles.zoomSliderContainer}>
-              <View style={styles.zoomTrack}>
-                <View 
-                  style={[styles.zoomFill, { width: `${zoom * 100}%` }]}
-                />
+            <View style={styles.zoomSliderWrapper}>
+              <View style={styles.zoomSliderContainer}>
+                <View style={styles.zoomTrack}>
+                  <View 
+                    style={[styles.zoomFill, { width: `${zoom * 100}%` }]}
+                  />
+                </View>
+                {Platform.OS === 'web' && (
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                    value={zoom}
+                    onChange={(e) => setZoom(parseFloat(e.target.value))}
+                    style={{
+                      position: 'absolute',
+                      width: '100%',
+                      height: '100%',
+                      opacity: 0,
+                      cursor: 'pointer',
+                    }}
+                  />
+                )}
               </View>
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.01"
-                value={zoom}
-                onChange={(e) => setZoom(parseFloat(e.target.value))}
-                style={{
-                  position: 'absolute',
-                  width: '100%',
-                  height: '100%',
-                  opacity: 0,
-                  cursor: 'pointer',
-                }}
-              />
+              <Text style={styles.zoomValue}>{(zoom * 100).toFixed(0)}%</Text>
             </View>
             
             <TouchableOpacity 
               style={styles.zoomButton} 
               onPress={() => setZoom(Math.min(1, zoom + 0.1))}
+              activeOpacity={0.7}
             >
               <Text style={styles.zoomButtonText}>+</Text>
             </TouchableOpacity>
@@ -213,55 +275,72 @@ export default function App() {
         )}
         
         {/* Status Text */}
-        <View style={styles.statusContainer}>
-          <Text style={styles.statusText}>
-            {scanned ? '✅ Scanned Successfully' : '📷 Point camera at barcode'}
-          </Text>
-          {scanned && (
-            <Text style={styles.dataText}>{data}</Text>
-          )}
-        </View>
-        
-        {/* F1 Model Info */}
-        {f1Model && (
-          <View style={styles.f1InfoContainer}>
-            <Text style={styles.f1Title}>🏎️ F1 Model Detected!</Text>
-            <Text style={styles.f1ModelText}>{f1Model.model}</Text>
-            <View style={styles.codeContainer}>
-              <View style={styles.codeBox}>
-                <Text style={styles.codeLabel}>Scanned</Text>
-                <Text style={styles.codeValue}>{f1Model.scannedCodeType}</Text>
-                <Text style={styles.codeNumber}>{f1Model.scannedCode}</Text>
-              </View>
-              <View style={styles.codeBox}>
-                <Text style={styles.codeLabel}>Other Code</Text>
-                <Text style={styles.codeValue}>{f1Model.otherCodeType}</Text>
-                <Text style={styles.codeNumber}>{f1Model.otherCode}</Text>
-              </View>
-            </View>
+        {!scanned && (
+          <View style={styles.statusContainer}>
+            <View style={styles.pulsingDot} />
+            <Text style={styles.statusText}>Ready to scan</Text>
           </View>
         )}
         
-        {/* No Match Info */}
-        {scanned && !f1Model && (
-          <View style={styles.noMatchContainer}>
-            <Text style={styles.noMatchText}>ℹ️ Not an F1 model code</Text>
-            <Text style={styles.noMatchSubText}>This barcode doesn't match any F1 model</Text>
-          </View>
-        )}
-        
-        {/* Scan Again Button */}
+        {/* Scan Results */}
         {scanned && (
-          <TouchableOpacity 
-            style={styles.scanButton}
-            onPress={() => { 
-              setScanned(false); 
-              setData(''); 
-              setF1Model(null);
-            }}
+          <Animated.View 
+            style={[
+              styles.resultContainer,
+              {
+                opacity: fadeAnim,
+                transform: [{ translateY: slideAnim }],
+              },
+            ]}
           >
-            <Text style={styles.scanButtonText}>🔄 Scan Again</Text>
-          </TouchableOpacity>
+            {/* F1 Model Info */}
+            {f1Model && (
+              <View style={[styles.f1InfoContainer, { backgroundColor: f1Model.color || '#FF1801' }]}>
+                <View style={styles.f1Header}>
+                  <Text style={styles.f1Icon}>🏁</Text>
+                  <Text style={styles.f1Title}>F1 Model Detected!</Text>
+                  <Text style={styles.f1Icon}>🏁</Text>
+                </View>
+                <Text style={styles.f1ModelText}>{f1Model.model}</Text>
+                
+                <View style={styles.codeContainer}>
+                  <View style={styles.codeBox}>
+                    <Text style={styles.codeLabel}>✅ Scanned</Text>
+                    <Text style={styles.codeValue}>{f1Model.scannedCodeType}</Text>
+                    <Text style={styles.codeNumber}>{f1Model.scannedCode}</Text>
+                  </View>
+                  
+                  <View style={styles.codeDivider} />
+                  
+                  <View style={styles.codeBox}>
+                    <Text style={styles.codeLabel}>📋 Pair Code</Text>
+                    <Text style={styles.codeValue}>{f1Model.otherCodeType}</Text>
+                    <Text style={styles.codeNumber}>{f1Model.otherCode}</Text>
+                  </View>
+                </View>
+              </View>
+            )}
+            
+            {/* No Match Info */}
+            {!f1Model && (
+              <View style={styles.noMatchContainer}>
+                <Text style={styles.noMatchIcon}>❓</Text>
+                <Text style={styles.noMatchText}>Unknown Barcode</Text>
+                <Text style={styles.dataText}>{data}</Text>
+                <Text style={styles.noMatchSubText}>This doesn't match any F1 model</Text>
+              </View>
+            )}
+            
+            {/* Scan Again Button */}
+            <TouchableOpacity 
+              style={styles.scanButton}
+              onPress={resetScanner}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.scanButtonIcon}>🔄</Text>
+              <Text style={styles.scanButtonText}>Scan Another</Text>
+            </TouchableOpacity>
+          </Animated.View>
         )}
       </View>
     </View>
@@ -277,12 +356,21 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#0a0a0a',
+  },
+  loadingIcon: {
+    fontSize: 48,
+    marginBottom: 20,
+  },
+  errorIcon: {
+    fontSize: 48,
+    marginBottom: 20,
   },
   permissionText: {
-    fontSize: 18,
+    fontSize: 20,
     color: '#fff',
     marginBottom: 10,
+    fontWeight: '600',
   },
   subText: {
     fontSize: 14,
@@ -291,216 +379,344 @@ const styles = StyleSheet.create({
   scanner: {
     flex: 1,
   },
+  gradientTop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 150,
+    background: 'linear-gradient(to bottom, rgba(0,0,0,0.8), transparent)',
+    backgroundColor: 'rgba(0,0,0,0.4)',
+  },
+  gradientBottom: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 200,
+    background: 'linear-gradient(to top, rgba(0,0,0,0.9), transparent)',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
   overlay: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
     alignItems: 'center',
-    pointerEvents: 'none',
   },
   scanFrame: {
-    width: 250,
-    height: 250,
+    width: 260,
+    height: 260,
     position: 'relative',
   },
   corner: {
     position: 'absolute',
-    width: 40,
-    height: 40,
+    width: 50,
+    height: 50,
     borderColor: '#FF1801',
   },
   topLeft: {
     top: 0,
     left: 0,
-    borderTopWidth: 3,
-    borderLeftWidth: 3,
+    borderTopWidth: 4,
+    borderLeftWidth: 4,
+    borderTopLeftRadius: 15,
   },
   topRight: {
     top: 0,
     right: 0,
-    borderTopWidth: 3,
-    borderRightWidth: 3,
+    borderTopWidth: 4,
+    borderRightWidth: 4,
+    borderTopRightRadius: 15,
   },
   bottomLeft: {
     bottom: 0,
     left: 0,
-    borderBottomWidth: 3,
-    borderLeftWidth: 3,
+    borderBottomWidth: 4,
+    borderLeftWidth: 4,
+    borderBottomLeftRadius: 15,
   },
   bottomRight: {
     bottom: 0,
     right: 0,
-    borderBottomWidth: 3,
-    borderRightWidth: 3,
+    borderBottomWidth: 4,
+    borderRightWidth: 4,
+    borderBottomRightRadius: 15,
   },
-  topControls: {
+  scanHint: {
+    position: 'absolute',
+    bottom: -30,
+    left: 0,
+    right: 0,
+    textAlign: 'center',
+    color: 'rgba(255, 255, 255, 0.6)',
+    fontSize: 12,
+  },
+  header: {
     position: 'absolute',
     top: 50,
     left: 0,
     right: 0,
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: 28,
+    color: '#fff',
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.7)',
+  },
+  topControls: {
+    position: 'absolute',
+    top: 120,
+    left: 0,
+    right: 0,
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'center',
     paddingHorizontal: 20,
+    gap: 15,
   },
   controlButton: {
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    borderRadius: 12,
-    padding: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: 15,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
     alignItems: 'center',
-    minWidth: 80,
+    flexDirection: 'row',
+    gap: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  controlButtonPrimary: {
+    backgroundColor: 'rgba(255, 24, 1, 0.2)',
+    borderColor: '#FF1801',
+  },
+  controlButtonActive: {
+    backgroundColor: 'rgba(255, 215, 0, 0.2)',
+    borderColor: '#FFD700',
   },
   controlIcon: {
-    fontSize: 24,
-    marginBottom: 4,
+    fontSize: 20,
   },
   controlLabel: {
     color: '#fff',
-    fontSize: 12,
+    fontSize: 14,
+    fontWeight: '600',
   },
   bottomContainer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.9)',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    paddingBottom: 30,
+    backgroundColor: 'rgba(10, 10, 10, 0.95)',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    padding: 25,
+    paddingBottom: 35,
+  },
+  bottomContainerExpanded: {
+    paddingTop: 30,
   },
   zoomContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 15,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 10,
-    padding: 10,
+    marginBottom: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 15,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   zoomButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 10,
-    width: 40,
-    height: 40,
+    backgroundColor: 'rgba(255, 24, 1, 0.2)',
+    borderRadius: 12,
+    width: 44,
+    height: 44,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#FF1801',
   },
   zoomButtonText: {
-    fontSize: 24,
-    color: '#fff',
-  },
-  zoomInfo: {
-    marginHorizontal: 10,
-    alignItems: 'center',
-  },
-  zoomLabel: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.8)',
-  },
-  zoomValue: {
-    fontSize: 16,
+    fontSize: 28,
+    color: '#FF1801',
     fontWeight: 'bold',
-    color: '#fff',
+  },
+  zoomSliderWrapper: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 15,
   },
   zoomSliderContainer: {
     flex: 1,
     position: 'relative',
-    height: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 5,
-    marginHorizontal: 10,
+    height: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 4,
   },
   zoomTrack: {
     height: '100%',
-    borderRadius: 5,
+    borderRadius: 4,
   },
   zoomFill: {
     height: '100%',
-    borderRadius: 5,
+    borderRadius: 4,
     backgroundColor: '#FF1801',
   },
+  zoomValue: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#FF1801',
+    marginLeft: 15,
+    minWidth: 45,
+  },
   statusContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 15,
+    justifyContent: 'center',
+    gap: 10,
+  },
+  pulsingDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#00FF00',
   },
   statusText: {
     fontSize: 16,
-    color: '#fff',
-    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontWeight: '500',
   },
-  dataText: {
-    fontSize: 12,
-    color: '#888',
-    marginTop: 5,
+  resultContainer: {
+    alignItems: 'center',
   },
   f1InfoContainer: {
-    backgroundColor: '#FF1801',
-    borderRadius: 15,
-    padding: 15,
-    marginBottom: 15,
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 20,
+    width: '100%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  f1Header: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  f1Icon: {
+    fontSize: 20,
+    marginHorizontal: 10,
   },
   f1Title: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#fff',
-    textAlign: 'center',
-    marginBottom: 5,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   f1ModelText: {
-    fontSize: 24,
+    fontSize: 32,
     fontWeight: 'bold',
     color: '#fff',
     textAlign: 'center',
-    marginBottom: 15,
+    marginBottom: 20,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
   codeContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   codeBox: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 10,
-    padding: 10,
-    flex: 0.45,
+    flex: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: 12,
+    padding: 12,
     alignItems: 'center',
+  },
+  codeDivider: {
+    width: 1,
+    height: 50,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    marginHorizontal: 10,
   },
   codeLabel: {
-    fontSize: 10,
-    color: 'rgba(255, 255, 255, 0.8)',
-    marginBottom: 2,
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.9)',
+    marginBottom: 4,
+    fontWeight: '500',
   },
   codeValue: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#fff',
-    fontWeight: '600',
-    marginBottom: 2,
+    fontWeight: 'bold',
+    marginBottom: 4,
   },
   codeNumber: {
-    fontSize: 11,
-    color: 'rgba(255, 255, 255, 0.9)',
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
   },
   noMatchContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 10,
-    padding: 15,
-    marginBottom: 15,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 20,
+    padding: 25,
+    marginBottom: 20,
     alignItems: 'center',
+    width: '100%',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  noMatchIcon: {
+    fontSize: 48,
+    marginBottom: 15,
   },
   noMatchText: {
-    fontSize: 16,
+    fontSize: 20,
     color: '#fff',
-    marginBottom: 5,
+    marginBottom: 10,
+    fontWeight: '600',
+  },
+  dataText: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.5)',
+    marginBottom: 10,
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
   },
   noMatchSubText: {
-    fontSize: 12,
-    color: '#888',
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.6)',
   },
   scanButton: {
     backgroundColor: '#FF1801',
     borderRadius: 25,
-    padding: 15,
+    paddingVertical: 16,
+    paddingHorizontal: 40,
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 10,
+    shadowColor: '#FF1801',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  scanButtonIcon: {
+    fontSize: 20,
   },
   scanButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
 });
