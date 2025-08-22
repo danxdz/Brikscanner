@@ -71,6 +71,7 @@ export default function App() {
   const [zoom, setZoom] = useState(0);
   const [flashOn, setFlashOn] = useState(false);
   const [f1Model, setF1Model] = useState(null);
+  const [cameraReady, setCameraReady] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
 
@@ -158,17 +159,27 @@ export default function App() {
     <View style={styles.container}>
       <StatusBar style="light" />
       
-      {/* Camera View - ALWAYS BACK CAMERA */}
+      {/* Try multiple camera configurations */}
       <CameraView
         style={styles.scanner}
-        facing="back"
+        facing={Platform.OS === 'web' ? 'environment' : 'back'}
+        type={Camera.Constants?.Type?.back || 0}
+        cameraType="back"
         onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
         zoom={zoom}
         enableTorch={flashOn}
+        onCameraReady={() => setCameraReady(true)}
         barcodeScannerSettings={{
           barcodeTypes: ["qr", "pdf417", "code128", "code39", "code93", "codabar", "ean13", "ean8", "upc_e", "datamatrix", "aztec"],
         }}
       />
+      
+      {/* Show loading overlay until camera is ready */}
+      {!cameraReady && (
+        <View style={styles.loadingOverlay}>
+          <Text style={styles.loadingText}>Initializing back camera...</Text>
+        </View>
+      )}
       
       {/* Gradient Overlay */}
       <View style={styles.gradientTop} />
@@ -699,5 +710,17 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textTransform: 'uppercase',
     letterSpacing: 1,
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  loadingText: {
+    color: '#fff',
+    fontSize: 16,
+    marginTop: 10,
   },
 });
