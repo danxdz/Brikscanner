@@ -54,9 +54,44 @@ const F1_CODE_LOOKUP = {
 };
 
 const getF1Model = (scannedData) => {
-  // Check if the scanned data starts with any of our known codes
+  const raw = String(scannedData ?? '').trim();
+  if (!raw) {
+    return null;
+  }
+
+  const normalized = raw.replace(/\s+/g, '');
+  const digitsOnly = raw.replace(/\D+/g, '');
+
+  // Try exact match first
+  if (F1_CODE_LOOKUP[raw]) {
+    const info = F1_CODE_LOOKUP[raw];
+    return {
+      model: info.model,
+      scannedCode: raw,
+      scannedCodeType: info.codeType,
+      otherCode: info.otherCode,
+      otherCodeType: info.codeType === 'Code 1' ? 'Code 2' : 'Code 1'
+    };
+  }
+
+  // Then try normalized exact
+  if (F1_CODE_LOOKUP[normalized]) {
+    const info = F1_CODE_LOOKUP[normalized];
+    return {
+      model: info.model,
+      scannedCode: normalized,
+      scannedCodeType: info.codeType,
+      otherCode: info.otherCode,
+      otherCodeType: info.codeType === 'Code 1' ? 'Code 2' : 'Code 1'
+    };
+  }
+
+  // Finally, search for any known code appearing anywhere in the value
   for (const [code, info] of Object.entries(F1_CODE_LOOKUP)) {
-    if (scannedData.startsWith(code)) {
+    if (
+      normalized.includes(code) ||
+      (digitsOnly && digitsOnly.includes(code))
+    ) {
       return {
         model: info.model,
         scannedCode: code,
@@ -66,7 +101,7 @@ const getF1Model = (scannedData) => {
       };
     }
   }
-  
+
   return null;
 };
 
