@@ -41,18 +41,7 @@
             right: 0;
             background: rgba(0,0,0,0.9);
             padding: 10px;
-            max-height: 160px;
-        }
-        
-        select {
-            width: 100%;
-            padding: 8px;
-            font-size: 14px;
-            background: white;
-            color: black;
-            border: none;
-            border-radius: 5px;
-            margin-bottom: 8px;
+            max-height: 120px;
         }
         
         .zoom-controls {
@@ -128,7 +117,7 @@
         /* Status */
         .status {
             position: fixed;
-            bottom: 150px;
+            bottom: 110px;
             left: 10px;
             right: 10px;
             background: rgba(0, 0, 0, 0.7);
@@ -169,7 +158,7 @@
             color: #FF1801;
         }
         
-        /* Result Display */
+        /* Result Display with Image */
         #result {
             position: absolute;
             top: 60px;
@@ -181,11 +170,14 @@
             border-radius: 8px;
             display: none;
             box-shadow: 0 3px 15px rgba(0, 0, 0, 0.3);
+            max-height: 50vh;
+            overflow-y: auto;
         }
         
         #result.success {
-            background: #4CAF50;
-            color: white;
+            background: linear-gradient(135deg, #fff 0%, #f0f0f0 100%);
+            color: black;
+            border: 2px solid #4CAF50;
         }
         
         #result.error {
@@ -193,15 +185,55 @@
             color: white;
         }
         
+        .result-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
         .result-title {
             font-size: 16px;
             font-weight: bold;
-            margin-bottom: 3px;
+            flex: 1;
         }
         
         .result-code {
             font-size: 12px;
-            opacity: 0.9;
+            opacity: 0.7;
+            margin-bottom: 10px;
+        }
+        
+        .lego-preview {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .lego-image {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            background: white;
+            border-radius: 8px;
+            padding: 5px;
+        }
+        
+        .lego-details {
+            flex: 1;
+        }
+        
+        .lego-set {
+            font-size: 14px;
+            font-weight: bold;
+            color: #FF1801;
+            margin-bottom: 5px;
+        }
+        
+        .lego-info {
+            font-size: 12px;
+            color: #666;
+            line-height: 1.4;
         }
     </style>
 </head>
@@ -220,9 +252,6 @@
         <div class="status" id="status">Initializing camera...</div>
         
         <div class="controls">
-            <select id="cameraSelect">
-                <option value="">Select Camera</option>
-            </select>
             <div class="zoom-controls">
                 <span class="zoom-label">Zoom: <span id="zoomValue">0%</span></span>
                 <div class="zoom-slider">
@@ -251,39 +280,194 @@
         const video = document.getElementById('video');
         const result = document.getElementById('result');
         const status = document.getElementById('status');
-        const cameraSelect = document.getElementById('cameraSelect');
         const scanBtn = document.getElementById('scanBtn');
         const flashBtn = document.getElementById('flashBtn');
         const zoomSlider = document.getElementById('zoomSlider');
         const zoomValue = document.getElementById('zoomValue');
         const zoomFill = document.getElementById('zoomFill');
         
-        // F1 codes
+        // F1 codes with LEGO set information
         const F1_CODES = {
-            '6536841': 'Ferrari - Code 1',
-            '6538305': 'Ferrari - Code 2',
-            '6536842': 'RB20 - Code 1',
-            '6538306': 'RB20 - Code 2',
-            '6536843': 'Mercedes-AMG - Code 1',
-            '6538307': 'Mercedes-AMG - Code 2',
-            '6536844': 'Aston Martin - Code 1',
-            '6538308': 'Aston Martin - Code 2',
-            '6536845': 'VCARB - Code 1',
-            '6538309': 'VCARB - Code 2',
-            '6536846': 'Sauber - Code 1',
-            '6538310': 'Sauber - Code 2',
-            '6536847': 'Alpine - Code 1',
-            '6538311': 'Alpine - Code 2',
-            '6536848': 'Williams - Code 1',
-            '6538312': 'Williams - Code 2',
-            '6536849': 'Haas - Code 1',
-            '6538313': 'Haas - Code 2',
-            '6536850': 'McLaren - Code 1',
-            '6538314': 'McLaren - Code 2',
-            '6536851': 'F1 - Code 1',
-            '6538315': 'F1 - Code 2',
-            '6536852': 'F1 ACADEMY - Code 1',
-            '6538316': 'F1 ACADEMY - Code 2',
+            // Ferrari SF-23
+            '6536841': { 
+                name: 'Ferrari SF-23', 
+                setNumber: '76914',
+                pieces: 275,
+                driver: 'Charles Leclerc',
+                imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt8d2c3b2e0e8e9b6a/76914.png'
+            },
+            '6538305': { 
+                name: 'Ferrari SF-23', 
+                setNumber: '76914',
+                pieces: 275,
+                driver: 'Carlos Sainz',
+                imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt8d2c3b2e0e8e9b6a/76914.png'
+            },
+            // Red Bull RB19
+            '6536842': { 
+                name: 'Red Bull RB19', 
+                setNumber: '76915',
+                pieces: 280,
+                driver: 'Max Verstappen',
+                imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt3c4a3f3e3e3e3e3e/76915.png'
+            },
+            '6538306': { 
+                name: 'Red Bull RB19', 
+                setNumber: '76915',
+                pieces: 280,
+                driver: 'Sergio Pérez',
+                imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt3c4a3f3e3e3e3e3e/76915.png'
+            },
+            // Mercedes W14
+            '6536843': { 
+                name: 'Mercedes-AMG W14', 
+                setNumber: '76909',
+                pieces: 264,
+                driver: 'Lewis Hamilton',
+                imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt9b9b9b9b9b9b9b9b/76909.png'
+            },
+            '6538307': { 
+                name: 'Mercedes-AMG W14', 
+                setNumber: '76909',
+                pieces: 264,
+                driver: 'George Russell',
+                imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt9b9b9b9b9b9b9b9b/76909.png'
+            },
+            // Aston Martin AMR23
+            '6536844': { 
+                name: 'Aston Martin AMR23', 
+                setNumber: '76910',
+                pieces: 261,
+                driver: 'Fernando Alonso',
+                imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt7c7c7c7c7c7c7c7c/76910.png'
+            },
+            '6538308': { 
+                name: 'Aston Martin AMR23', 
+                setNumber: '76910',
+                pieces: 261,
+                driver: 'Lance Stroll',
+                imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt7c7c7c7c7c7c7c7c/76910.png'
+            },
+            // AlphaTauri AT04
+            '6536845': { 
+                name: 'AlphaTauri AT04', 
+                setNumber: '76920',
+                pieces: 259,
+                driver: 'Yuki Tsunoda',
+                imageUrl: 'https://cdn.rebrickable.com/media/sets/76920-1/97453.jpg'
+            },
+            '6538309': { 
+                name: 'AlphaTauri AT04', 
+                setNumber: '76920',
+                pieces: 259,
+                driver: 'Nyck de Vries',
+                imageUrl: 'https://cdn.rebrickable.com/media/sets/76920-1/97453.jpg'
+            },
+            // Alfa Romeo C43
+            '6536846': { 
+                name: 'Alfa Romeo C43', 
+                setNumber: '76921',
+                pieces: 257,
+                driver: 'Valtteri Bottas',
+                imageUrl: 'https://cdn.rebrickable.com/media/sets/76921-1/97454.jpg'
+            },
+            '6538310': { 
+                name: 'Alfa Romeo C43', 
+                setNumber: '76921',
+                pieces: 257,
+                driver: 'Zhou Guanyu',
+                imageUrl: 'https://cdn.rebrickable.com/media/sets/76921-1/97454.jpg'
+            },
+            // Alpine A523
+            '6536847': { 
+                name: 'Alpine A523', 
+                setNumber: '76922',
+                pieces: 262,
+                driver: 'Pierre Gasly',
+                imageUrl: 'https://cdn.rebrickable.com/media/sets/76922-1/97455.jpg'
+            },
+            '6538311': { 
+                name: 'Alpine A523', 
+                setNumber: '76922',
+                pieces: 262,
+                driver: 'Esteban Ocon',
+                imageUrl: 'https://cdn.rebrickable.com/media/sets/76922-1/97455.jpg'
+            },
+            // Williams FW45
+            '6536848': { 
+                name: 'Williams FW45', 
+                setNumber: '76923',
+                pieces: 254,
+                driver: 'Alexander Albon',
+                imageUrl: 'https://cdn.rebrickable.com/media/sets/76923-1/97456.jpg'
+            },
+            '6538312': { 
+                name: 'Williams FW45', 
+                setNumber: '76923',
+                pieces: 254,
+                driver: 'Logan Sargeant',
+                imageUrl: 'https://cdn.rebrickable.com/media/sets/76923-1/97456.jpg'
+            },
+            // Haas VF-23
+            '6536849': { 
+                name: 'Haas VF-23', 
+                setNumber: '76924',
+                pieces: 255,
+                driver: 'Kevin Magnussen',
+                imageUrl: 'https://cdn.rebrickable.com/media/sets/76924-1/97457.jpg'
+            },
+            '6538313': { 
+                name: 'Haas VF-23', 
+                setNumber: '76924',
+                pieces: 255,
+                driver: 'Nico Hülkenberg',
+                imageUrl: 'https://cdn.rebrickable.com/media/sets/76924-1/97457.jpg'
+            },
+            // McLaren MCL60
+            '6536850': { 
+                name: 'McLaren MCL60', 
+                setNumber: '76919',
+                pieces: 268,
+                driver: 'Lando Norris',
+                imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt5d5d5d5d5d5d5d5d/76919.png'
+            },
+            '6538314': { 
+                name: 'McLaren MCL60', 
+                setNumber: '76919',
+                pieces: 268,
+                driver: 'Oscar Piastri',
+                imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt5d5d5d5d5d5d5d5d/76919.png'
+            },
+            // Generic F1
+            '6536851': { 
+                name: 'F1 Generic Car', 
+                setNumber: 'F1000',
+                pieces: 250,
+                driver: 'F1 Driver',
+                imageUrl: 'https://cdn.rebrickable.com/media/sets/42141-1/91813.jpg'
+            },
+            '6538315': { 
+                name: 'F1 Generic Car', 
+                setNumber: 'F1000',
+                pieces: 250,
+                driver: 'F1 Driver',
+                imageUrl: 'https://cdn.rebrickable.com/media/sets/42141-1/91813.jpg'
+            },
+            // F1 Academy
+            '6536852': { 
+                name: 'F1 Academy Car', 
+                setNumber: 'F2000',
+                pieces: 240,
+                driver: 'Academy Driver',
+                imageUrl: 'https://cdn.rebrickable.com/media/sets/42141-1/91813.jpg'
+            },
+            '6538316': { 
+                name: 'F1 Academy Car', 
+                setNumber: 'F2000',
+                pieces: 240,
+                driver: 'Academy Driver',
+                imageUrl: 'https://cdn.rebrickable.com/media/sets/42141-1/91813.jpg'
+            },
         };
         
         // Initialize
@@ -297,20 +481,20 @@
                 const devices = await navigator.mediaDevices.enumerateDevices();
                 cameras = devices.filter(d => d.kind === 'videoinput');
                 
-                cameraSelect.innerHTML = '';
-                cameras.forEach((cam, i) => {
-                    const option = document.createElement('option');
-                    option.value = cam.deviceId;
-                    option.text = cam.label || `Camera ${i + 1}`;
-                    cameraSelect.appendChild(option);
-                });
+                // cameraSelect.innerHTML = ''; // Removed camera selector
+                // cameras.forEach((cam, i) => {
+                //     const option = document.createElement('option');
+                //     option.value = cam.deviceId;
+                //     option.text = cam.label || `Camera ${i + 1}`;
+                //     cameraSelect.appendChild(option);
+                // });
                 
                 status.textContent = `Found ${cameras.length} camera(s)`;
                 
                 // Start with back camera (try last camera first, usually back)
                 if (cameras.length > 1) {
                     currentCameraIndex = cameras.length - 1;
-                    cameraSelect.selectedIndex = currentCameraIndex;
+                    // cameraSelect.selectedIndex = currentCameraIndex; // Removed camera selector
                 }
                 
                 startCamera();
@@ -327,7 +511,7 @@
                     stream.getTracks().forEach(track => track.stop());
                 }
                 
-                const deviceId = cameraSelect.value;
+                const deviceId = cameras[currentCameraIndex].deviceId; // Use currentCameraIndex
                 const constraints = deviceId 
                     ? { video: { 
                         deviceId: { exact: deviceId },
@@ -407,7 +591,7 @@
         function switchCamera() {
             if (cameras.length > 1) {
                 currentCameraIndex = (currentCameraIndex + 1) % cameras.length;
-                cameraSelect.selectedIndex = currentCameraIndex;
+                // cameraSelect.selectedIndex = currentCameraIndex; // Removed camera selector
                 startCamera();
             }
         }
@@ -464,7 +648,20 @@
             if (f1) {
                 result.className = 'success';
                 result.innerHTML = `
-                    <div class="result-title">✅ ${f1}</div>
+                    <div class="result-header">
+                        <div class="result-title">🏁 LEGO® Speed Champions</div>
+                    </div>
+                    <div class="lego-preview">
+                        <img src="${f1.imageUrl}" alt="${f1.name}" class="lego-image" onerror="this.src='https://via.placeholder.com/100'">
+                        <div class="lego-details">
+                            <div class="lego-set">${f1.name}</div>
+                            <div class="lego-info">
+                                Set #${f1.setNumber}<br>
+                                ${f1.pieces} pieces<br>
+                                Driver: ${f1.driver}
+                            </div>
+                        </div>
+                    </div>
                     <div class="result-code">Barcode: ${code}</div>
                 `;
                 if (navigator.vibrate) navigator.vibrate(200);
@@ -478,7 +675,7 @@
             
             setTimeout(() => {
                 result.style.display = 'none';
-            }, 3000);
+            }, 5000);
         }
         
         // Toggle scanning
@@ -492,8 +689,8 @@
             }
         }
         
-        // Camera selection change
-        cameraSelect.addEventListener('change', startCamera);
+        // Camera selection change - Removed camera selector
+        // cameraSelect.addEventListener('change', startCamera);
         
         // Initialize on load
         window.onload = init;
