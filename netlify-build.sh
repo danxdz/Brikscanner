@@ -4,15 +4,15 @@ echo "Starting Netlify build process..."
 
 # Clean previous builds
 echo "Cleaning previous build artifacts..."
-rm -rf node_modules dist package-lock.json
+rm -rf node_modules dist package-lock.json .expo
 
-# Install dependencies
+# Install dependencies fresh
 echo "Installing dependencies..."
 npm install --legacy-peer-deps
 
-# Verify @expo/metro-runtime is installed
-echo "Verifying @expo/metro-runtime installation..."
-npm ls @expo/metro-runtime || npm install @expo/metro-runtime@~3.2.3 --legacy-peer-deps
+# List installed packages to verify
+echo "Verifying installations..."
+npm ls @expo/metro-runtime
 
 # Build the web app
 echo "Building web application..."

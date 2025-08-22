@@ -29,7 +29,9 @@
       "package": "com.yourcompany.f1barcodescanner"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "output": "static"
     },
     "plugins": [
       [

@@ -8,7 +8,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "build:web": "expo export --platform web --output-dir dist",
-    "build:gh-pages": "PUBLIC_URL=/Brikscanner expo export --platform web --output-dir dist",
+    "build:gh-pages": "expo export --platform web --output-dir dist && node scripts/fix-gh-pages.js",
     "predeploy:gh-pages": "npm run build:gh-pages",
     "deploy:gh-pages": "gh-pages -d dist -t true",
     "serve:web": "npx serve dist",
