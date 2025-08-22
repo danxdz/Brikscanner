@@ -59,39 +59,19 @@ const getF1Model = (scannedData) => {
     return null;
   }
 
-  // Extract all digit clusters from the raw string
-  const digitClusters = raw.match(/\d+/g) || [];
+  // Find exact 7-digit numeric tokens (not part of longer digit runs)
+  const tokens = raw.match(/(?<!\d)\d{7}(?!\d)/g) || [];
 
-  // Prefer exact 7-digit clusters first
-  for (const cluster of digitClusters) {
-    if (cluster.length === 7 && F1_CODE_LOOKUP[cluster]) {
-      const info = F1_CODE_LOOKUP[cluster];
+  for (const token of tokens) {
+    const info = F1_CODE_LOOKUP[token];
+    if (info) {
       return {
         model: info.model,
-        scannedCode: cluster,
+        scannedCode: token,
         scannedCodeType: info.codeType,
         otherCode: info.otherCode,
         otherCodeType: info.codeType === 'Code 1' ? 'Code 2' : 'Code 1'
       };
-    }
-  }
-
-  // Then check any 7-digit window inside longer numeric clusters
-  for (const cluster of digitClusters) {
-    if (cluster.length >= 7) {
-      for (let i = 0; i <= cluster.length - 7; i++) {
-        const candidate = cluster.slice(i, i + 7);
-        if (F1_CODE_LOOKUP[candidate]) {
-          const info = F1_CODE_LOOKUP[candidate];
-          return {
-            model: info.model,
-            scannedCode: candidate,
-            scannedCodeType: info.codeType,
-            otherCode: info.otherCode,
-            otherCodeType: info.codeType === 'Code 1' ? 'Code 2' : 'Code 1'
-          };
-        }
-      }
     }
   }
 
