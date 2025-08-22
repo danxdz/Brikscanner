@@ -193,21 +193,23 @@ export default function App() {
     );
   }
 
-  // Determine facing based on camera index
+  // Determine facing based on camera selection
   const getFacing = () => {
     if (Platform.OS !== 'web') {
       return 'back';
     }
-    
-    // For web, try different approaches based on index
-    if (selectedCameraIndex === 0) {
-      return 'back';  // First try back
-    } else if (selectedCameraIndex === 1) {
-      return 'front'; // Then front
-    } else {
-      // For additional cameras, alternate
-      return selectedCameraIndex % 2 === 0 ? 'back' : 'front';
+
+    const current = availableCameras[selectedCameraIndex];
+    if (current && current.originalLabel) {
+      const labelLower = current.originalLabel.toLowerCase();
+      const isBackLabeled = labelLower.includes('back') || labelLower.includes('rear') || labelLower.includes('environment');
+      const desired = isBackLabeled ? 'back' : 'front';
+      // Invert on web to address devices where facing is reversed
+      return desired === 'back' ? 'front' : 'back';
     }
+
+    // Fallback: prefer back when multiple devices are present
+    return availableCameras.length > 1 ? 'back' : 'front';
   };
 
   return (
@@ -218,7 +220,7 @@ export default function App() {
         facing={getFacing()}
         onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
         zoom={zoom}
-        enableTorch={flashOn}
+        enableTorch={flashOn && getFacing() === 'back'}
         barcodeScannerSettings={{
           barcodeTypes: ["qr", "pdf417", "code128", "code39", "code93", "codabar", "ean13", "ean8", "upc_e", "datamatrix", "aztec"],
         }}
@@ -252,7 +254,6 @@ export default function App() {
         <Text style={styles.statusText}>
           {scanned ? `Scanned: ${data}` : 'Point camera at a barcode or QR code'}
         </Text>
-        
         {!scanned && (
           <Text style={styles.zoomText}>
             Zoom: {(zoom * 100).toFixed(0)}% | Flash: {flashOn ? 'ON' : 'OFF'}
