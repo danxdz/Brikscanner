@@ -19,24 +19,6 @@
             overflow: hidden;
         }
         
-        /* Header */
-        .header {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: rgba(0,0,0,0.8);
-            padding: 15px;
-            z-index: 10;
-            text-align: center;
-        }
-        
-        .logo {
-            font-size: 20px;
-            font-weight: bold;
-            color: #FF1801;
-        }
-        
         /* Video Container */
         #videoContainer {
             position: relative;
@@ -51,78 +33,31 @@
             object-fit: cover;
         }
         
-        /* Scanning Frame */
-        .scan-region {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 260px;
-            height: 260px;
-            border: 2px solid #FF1801;
-            border-radius: 15px;
-            pointer-events: none;
-        }
-        
-        /* Result Display */
-        #result {
-            position: absolute;
-            top: 80px;
-            left: 20px;
-            right: 20px;
-            background: white;
-            color: black;
-            padding: 15px;
-            border-radius: 10px;
-            display: none;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
-        }
-        
-        #result.success {
-            background: #4CAF50;
-            color: white;
-        }
-        
-        #result.error {
-            background: #f44336;
-            color: white;
-        }
-        
-        .result-title {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        
-        .result-code {
-            font-size: 14px;
-            opacity: 0.9;
-        }
-        
         /* Controls */
         .controls {
-            position: absolute;
+            position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
             background: rgba(0,0,0,0.9);
-            padding: 20px;
+            padding: 10px;
+            max-height: 120px;
         }
         
         select {
             width: 100%;
-            padding: 10px;
-            font-size: 16px;
+            padding: 8px;
+            font-size: 14px;
             background: white;
             color: black;
             border: none;
             border-radius: 5px;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
         
         .button-group {
             display: flex;
-            gap: 10px;
+            gap: 8px;
         }
         
         button {
@@ -130,9 +65,9 @@
             background: #FF1801;
             color: white;
             border: none;
-            padding: 12px;
+            padding: 10px;
             border-radius: 5px;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: bold;
             cursor: pointer;
         }
@@ -147,15 +82,81 @@
         
         /* Status */
         .status {
-            position: absolute;
-            bottom: 140px;
-            left: 20px;
-            right: 20px;
+            position: fixed;
+            bottom: 110px;
+            left: 10px;
+            right: 10px;
             background: rgba(0, 0, 0, 0.7);
-            padding: 10px;
+            padding: 8px;
             border-radius: 5px;
             text-align: center;
-            font-size: 14px;
+            font-size: 12px;
+        }
+        
+        /* Scanning Frame */
+        .scan-region {
+            position: absolute;
+            top: 45%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 220px;
+            height: 220px;
+            border: 2px solid #FF1801;
+            border-radius: 12px;
+            pointer-events: none;
+        }
+        
+        /* Header */
+        .header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.8);
+            padding: 10px;
+            z-index: 10;
+            text-align: center;
+        }
+        
+        .logo {
+            font-size: 18px;
+            font-weight: bold;
+            color: #FF1801;
+        }
+        
+        /* Result Display */
+        #result {
+            position: absolute;
+            top: 60px;
+            left: 15px;
+            right: 15px;
+            background: white;
+            color: black;
+            padding: 12px;
+            border-radius: 8px;
+            display: none;
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        #result.success {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        #result.error {
+            background: #f44336;
+            color: white;
+        }
+        
+        .result-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+        
+        .result-code {
+            font-size: 12px;
+            opacity: 0.9;
         }
     </style>
 </head>
