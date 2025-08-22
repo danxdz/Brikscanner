@@ -28,15 +28,18 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "18"
+          cache: 'npm'
           
       - name: Install dependencies
-        run: npm install --legacy-peer-deps
-        
-      - name: Install metro-runtime
-        run: npx expo install @expo/metro-runtime
+        run: npm ci --legacy-peer-deps
         
       - name: Build web app
-        run: npx expo export --platform web
+        run: npx expo export --platform web --output-dir dist
+        env:
+          PUBLIC_URL: /${{ github.event.repository.name }}
+        
+      - name: Add .nojekyll file
+        run: touch dist/.nojekyll
         
       - name: Setup Pages
         uses: actions/configure-pages@v4
