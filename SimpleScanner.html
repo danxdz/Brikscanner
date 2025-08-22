@@ -151,13 +151,42 @@
         
         // F1 codes
         const F1_CODES = {
+            // Ferrari
             '6536841': 'Ferrari - Code 1',
             '6538305': 'Ferrari - Code 2',
+            // RB20
             '6536842': 'RB20 - Code 1',
             '6538306': 'RB20 - Code 2',
+            // Mercedes-AMG
             '6536843': 'Mercedes-AMG - Code 1',
             '6538307': 'Mercedes-AMG - Code 2',
-            // Add more codes as needed
+            // Aston Martin
+            '6536844': 'Aston Martin - Code 1',
+            '6538308': 'Aston Martin - Code 2',
+            // VCARB
+            '6536845': 'VCARB - Code 1',
+            '6538309': 'VCARB - Code 2',
+            // Sauber
+            '6536846': 'Sauber - Code 1',
+            '6538310': 'Sauber - Code 2',
+            // Alpine
+            '6536847': 'Alpine - Code 1',
+            '6538311': 'Alpine - Code 2',
+            // Williams
+            '6536848': 'Williams - Code 1',
+            '6538312': 'Williams - Code 2',
+            // Haas
+            '6536849': 'Haas - Code 1',
+            '6538313': 'Haas - Code 2',
+            // McLaren
+            '6536850': 'McLaren - Code 1',
+            '6538314': 'McLaren - Code 2',
+            // F1
+            '6536851': 'F1 - Code 1',
+            '6538315': 'F1 - Code 2',
+            // F1 ACADEMY
+            '6536852': 'F1 ACADEMY - Code 1',
+            '6538316': 'F1 ACADEMY - Code 2',
         };
         
         async function init() {
@@ -240,7 +269,7 @@
             
             try {
                 const barcodeDetector = new BarcodeDetector({
-                    formats: ['code_128', 'code_39', 'ean_13', 'ean_8', 'qr_code']
+                    formats: ['code_128', 'code_39', 'code_93', 'ean_13', 'ean_8', 'upc_a', 'upc_e', 'qr_code', 'aztec', 'data_matrix', 'pdf417']
                 });
                 
                 const detect = async () => {
@@ -268,20 +297,33 @@
         }
         
         function showResult(code) {
-            const f1Model = F1_CODES[code];
+            // Check if the scanned code contains any F1 code
+            let f1Model = F1_CODES[code];
+            
+            // If exact match not found, check if code starts with any F1 code
+            if (!f1Model) {
+                for (const [f1Code, model] of Object.entries(F1_CODES)) {
+                    if (code.startsWith(f1Code) || f1Code.startsWith(code)) {
+                        f1Model = model + ' (partial match)';
+                        break;
+                    }
+                }
+            }
+            
             result.style.display = 'block';
             
             if (f1Model) {
                 result.className = '';
-                result.innerHTML = `✅ Found: ${f1Model}<br>Code: ${code}`;
+                result.innerHTML = `✅ Found: ${f1Model}<br>Scanned: ${code}`;
             } else {
                 result.className = 'error';
-                result.innerHTML = `❓ Unknown code: ${code}`;
+                result.innerHTML = `❓ Unknown code<br>Scanned: ${code}<br>Length: ${code.length} chars`;
             }
             
+            // Don't auto-hide for debugging
             setTimeout(() => {
                 result.style.display = 'none';
-            }, 3000);
+            }, 5000);
         }
         
         function switchCameraMode() {
