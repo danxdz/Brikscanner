@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Button, Platform } from 'react-native';
 import { CameraView, Camera } from 'expo-camera';
 
@@ -80,6 +80,12 @@ export default function App() {
   const [availableCameras, setAvailableCameras] = useState([]);
   const [selectedCameraIndex, setSelectedCameraIndex] = useState(0);
   const [cameraKey, setCameraKey] = useState(0);
+
+  // Web-only refs/state for direct getUserMedia control
+  const webVideoRef = useRef(null);
+  const webStreamRef = useRef(null);
+  const webVideoTrackRef = useRef(null);
+  const webScanRafRef = useRef(null);
 
   useEffect(() => {
     const getCameraPermissions = async () => {
@@ -171,6 +177,112 @@ export default function App() {
     setCameraKey(prev => prev + 1);
   };
 
+  // Start/stop web camera with explicit deviceId constraints
+  const stopWebCamera = () => {
+    if (webScanRafRef.current) {
+      cancelAnimationFrame(webScanRafRef.current);
+      webScanRafRef.current = null;
+    }
+    if (webStreamRef.current) {
+      try {
+        webStreamRef.current.getTracks().forEach(t => t.stop());
+      } catch {}
+      webStreamRef.current = null;
+    }
+    webVideoTrackRef.current = null;
+    if (webVideoRef.current) {
+      webVideoRef.current.srcObject = null;
+    }
+  };
+
+  const startWebCamera = async () => {
+    if (Platform.OS !== 'web') return;
+    try {
+      stopWebCamera();
+
+      const current = availableCameras[selectedCameraIndex];
+      const constraints = current && current.deviceId
+        ? { video: { deviceId: { exact: current.deviceId } } }
+        : { video: { facingMode: { exact: 'environment' } } };
+
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      webStreamRef.current = stream;
+      if (webVideoRef.current) {
+        webVideoRef.current.srcObject = stream;
+      }
+      const track = stream.getVideoTracks()[0];
+      webVideoTrackRef.current = track;
+
+      // Try to apply torch if requested
+      if (flashOn && track && track.applyConstraints) {
+        try { await track.applyConstraints({ advanced: [{ torch: true }] }); } catch {}
+      }
+
+      // Kick off scanning if supported
+      startWebScanning();
+    } catch (err) {
+      // Fallback: try without exact environment constraint
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        webStreamRef.current = stream;
+        if (webVideoRef.current) {
+          webVideoRef.current.srcObject = stream;
+        }
+        webVideoTrackRef.current = stream.getVideoTracks()[0];
+        startWebScanning();
+      } catch (e2) {
+        console.error('Web camera error:', e2);
+      }
+    }
+  };
+
+  const startWebScanning = () => {
+    if (typeof window === 'undefined' || !webVideoRef.current) return;
+    if (!('BarcodeDetector' in window)) return;
+
+    const detector = new window.BarcodeDetector({
+      formats: ['code_128', 'code_39', 'code_93', 'ean_13', 'ean_8', 'upc_e', 'qr_code', 'pdf417', 'aztec', 'data_matrix']
+    });
+
+    const scan = async () => {
+      if (!webVideoRef.current || scanned) return;
+      try {
+        const barcodes = await detector.detect(webVideoRef.current);
+        if (barcodes && barcodes.length > 0) {
+          const code = barcodes[0].rawValue;
+          handleBarcodeScanned({ type: 'web', data: code });
+          return; // stop scanning after first detection; state will update
+        }
+      } catch {}
+      webScanRafRef.current = requestAnimationFrame(scan);
+    };
+
+    webScanRafRef.current = requestAnimationFrame(scan);
+  };
+
+  // React to selection/permission changes on web to start camera
+  useEffect(() => {
+    if (Platform.OS === 'web' && hasPermission) {
+      startWebCamera();
+      return () => stopWebCamera();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasPermission, selectedCameraIndex, cameraKey]);
+
+  // Apply flash on web when toggled
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    const track = webVideoTrackRef.current;
+    if (!track) return;
+    if (track.applyConstraints) {
+      track.applyConstraints({ advanced: [{ torch: !!flashOn }] }).catch(() => {
+        // If not supported, restart stream to try torch
+        startWebCamera();
+      });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [flashOn]);
+
   const handleBarcodeScanned = ({ type, data }) => {
     setScanned(true);
     setData(data);
@@ -221,17 +333,28 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <CameraView
-        key={cameraKey}
-        style={styles.scanner}
-        facing={getFacing()}
-        onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
-        zoom={zoom}
-        enableTorch={flashOn && getFacing() === 'back'}
-        barcodeScannerSettings={{
-          barcodeTypes: ["qr", "pdf417", "code128", "code39", "code93", "codabar", "ean13", "ean8", "upc_e", "datamatrix", "aztec"],
-        }}
-      />
+      {Platform.OS === 'web' ? (
+        <View style={styles.scanner}>
+          <video
+            ref={webVideoRef}
+            autoPlay
+            playsInline
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+        </View>
+      ) : (
+        <CameraView
+          key={cameraKey}
+          style={styles.scanner}
+          facing={getFacing()}
+          onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
+          zoom={zoom}
+          enableTorch={flashOn && getFacing() === 'back'}
+          barcodeScannerSettings={{
+            barcodeTypes: ["qr", "pdf417", "code128", "code39", "code93", "codabar", "ean13", "ean8", "upc_e", "datamatrix", "aztec"],
+          }}
+        />
+      )}
       
       <View style={styles.bottomContainer}>
         {/* Camera Selector for Web */}
