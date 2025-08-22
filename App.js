@@ -59,46 +59,39 @@ const getF1Model = (scannedData) => {
     return null;
   }
 
-  const normalized = raw.replace(/\s+/g, '');
-  const digitsOnly = raw.replace(/\D+/g, '');
+  // Extract all digit clusters from the raw string
+  const digitClusters = raw.match(/\d+/g) || [];
 
-  // Try exact match first
-  if (F1_CODE_LOOKUP[raw]) {
-    const info = F1_CODE_LOOKUP[raw];
-    return {
-      model: info.model,
-      scannedCode: raw,
-      scannedCodeType: info.codeType,
-      otherCode: info.otherCode,
-      otherCodeType: info.codeType === 'Code 1' ? 'Code 2' : 'Code 1'
-    };
-  }
-
-  // Then try normalized exact
-  if (F1_CODE_LOOKUP[normalized]) {
-    const info = F1_CODE_LOOKUP[normalized];
-    return {
-      model: info.model,
-      scannedCode: normalized,
-      scannedCodeType: info.codeType,
-      otherCode: info.otherCode,
-      otherCodeType: info.codeType === 'Code 1' ? 'Code 2' : 'Code 1'
-    };
-  }
-
-  // Finally, search for any known code appearing anywhere in the value
-  for (const [code, info] of Object.entries(F1_CODE_LOOKUP)) {
-    if (
-      normalized.includes(code) ||
-      (digitsOnly && digitsOnly.includes(code))
-    ) {
+  // Prefer exact 7-digit clusters first
+  for (const cluster of digitClusters) {
+    if (cluster.length === 7 && F1_CODE_LOOKUP[cluster]) {
+      const info = F1_CODE_LOOKUP[cluster];
       return {
         model: info.model,
-        scannedCode: code,
+        scannedCode: cluster,
         scannedCodeType: info.codeType,
         otherCode: info.otherCode,
         otherCodeType: info.codeType === 'Code 1' ? 'Code 2' : 'Code 1'
       };
+    }
+  }
+
+  // Then check any 7-digit window inside longer numeric clusters
+  for (const cluster of digitClusters) {
+    if (cluster.length >= 7) {
+      for (let i = 0; i <= cluster.length - 7; i++) {
+        const candidate = cluster.slice(i, i + 7);
+        if (F1_CODE_LOOKUP[candidate]) {
+          const info = F1_CODE_LOOKUP[candidate];
+          return {
+            model: info.model,
+            scannedCode: candidate,
+            scannedCodeType: info.codeType,
+            otherCode: info.otherCode,
+            otherCodeType: info.codeType === 'Code 1' ? 'Code 2' : 'Code 1'
+          };
+        }
+      }
     }
   }
 
