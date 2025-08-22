@@ -5,7 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
-// F1 Car Models Lookup Table - Each model has 2 separate codes
+// F1 Car Models Lookup Table
 const F1_CODE_LOOKUP = {
   // Ferrari
   '6536841': { model: 'Ferrari', codeType: 'Code 1', otherCode: '6538305', color: '#DC0000' },
@@ -64,22 +64,6 @@ const F1_CODE_LOOKUP = {
   '6538318': { model: 'Monaco', codeType: 'Code 2', otherCode: '6536854', color: '#CE1126' },
 };
 
-// Camera Component - Separated to allow complete unmount/remount
-function CameraScanner({ facing, onBarcodeScanned, zoom, flashOn, scanned }) {
-  return (
-    <CameraView
-      style={styles.scanner}
-      facing={facing}
-      onBarcodeScanned={scanned ? undefined : onBarcodeScanned}
-      zoom={zoom}
-      enableTorch={flashOn}
-      barcodeScannerSettings={{
-        barcodeTypes: ["qr", "pdf417", "code128", "code39", "code93", "codabar", "ean13", "ean8", "upc_e", "datamatrix", "aztec"],
-      }}
-    />
-  );
-}
-
 export default function App() {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
@@ -87,9 +71,6 @@ export default function App() {
   const [zoom, setZoom] = useState(0);
   const [flashOn, setFlashOn] = useState(false);
   const [f1Model, setF1Model] = useState(null);
-  const [currentCamera, setCurrentCamera] = useState('back');
-  const [cameraKey, setCameraKey] = useState(0);
-  const [showCamera, setShowCamera] = useState(true);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
 
@@ -148,23 +129,6 @@ export default function App() {
     setFlashOn((prev) => !prev);
   };
 
-  const switchCamera = () => {
-    // Hide camera temporarily
-    setShowCamera(false);
-    
-    // Change camera after a brief delay
-    setTimeout(() => {
-      setCurrentCamera(prev => prev === 'back' ? 'front' : 'back');
-      setCameraKey(prev => prev + 1); // Force new key
-      setFlashOn(false); // Reset flash
-      
-      // Show camera again after another brief delay
-      setTimeout(() => {
-        setShowCamera(true);
-      }, 100);
-    }, 200);
-  };
-
   const resetScanner = () => {
     setScanned(false);
     setData('');
@@ -194,30 +158,24 @@ export default function App() {
     <View style={styles.container}>
       <StatusBar style="light" />
       
-      {/* Camera View - Conditionally rendered with key */}
-      <View style={styles.cameraContainer}>
-        {showCamera ? (
-          <CameraScanner
-            key={`camera-${cameraKey}-${currentCamera}`}
-            facing={currentCamera}
-            onBarcodeScanned={handleBarcodeScanned}
-            zoom={zoom}
-            flashOn={flashOn && currentCamera === 'back'}
-            scanned={scanned}
-          />
-        ) : (
-          <View style={styles.cameraLoading}>
-            <Text style={styles.cameraLoadingText}>Switching camera...</Text>
-          </View>
-        )}
-      </View>
+      {/* Camera View - ALWAYS BACK CAMERA */}
+      <CameraView
+        style={styles.scanner}
+        facing="back"
+        onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
+        zoom={zoom}
+        enableTorch={flashOn}
+        barcodeScannerSettings={{
+          barcodeTypes: ["qr", "pdf417", "code128", "code39", "code93", "codabar", "ean13", "ean8", "upc_e", "datamatrix", "aztec"],
+        }}
+      />
       
       {/* Gradient Overlay */}
       <View style={styles.gradientTop} />
       <View style={styles.gradientBottom} />
       
       {/* Scan Frame Overlay */}
-      {!scanned && showCamera && (
+      {!scanned && (
         <View style={styles.overlay}>
           <View style={styles.scanFrame}>
             <View style={[styles.corner, styles.topLeft]} />
@@ -232,35 +190,19 @@ export default function App() {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>🏎️ F1 Scanner</Text>
-        <Text style={styles.headerSubtitle}>
-          {currentCamera === 'back' ? 'Back Camera' : 'Front Camera'}
-        </Text>
+        <Text style={styles.headerSubtitle}>Professional Barcode Scanner</Text>
       </View>
       
-      {/* Top Controls */}
+      {/* Top Controls - Only Flash */}
       <View style={styles.topControls}>
         <TouchableOpacity 
-          style={[styles.controlButton, styles.controlButtonPrimary]} 
-          onPress={switchCamera}
+          style={[styles.controlButton, flashOn && styles.controlButtonActive]} 
+          onPress={toggleFlash}
           activeOpacity={0.8}
-          disabled={!showCamera}
         >
-          <Text style={styles.controlIcon}>🔄</Text>
-          <Text style={styles.controlLabel}>
-            {currentCamera === 'back' ? 'Use Front' : 'Use Back'}
-          </Text>
+          <Text style={styles.controlIcon}>{flashOn ? '🔦' : '💡'}</Text>
+          <Text style={styles.controlLabel}>{flashOn ? 'Flash ON' : 'Flash OFF'}</Text>
         </TouchableOpacity>
-        
-        {currentCamera === 'back' && (
-          <TouchableOpacity 
-            style={[styles.controlButton, flashOn && styles.controlButtonActive]} 
-            onPress={toggleFlash}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.controlIcon}>{flashOn ? '🔦' : '💡'}</Text>
-            <Text style={styles.controlLabel}>Flash</Text>
-          </TouchableOpacity>
-        )}
       </View>
       
       {/* Bottom Container */}
@@ -315,10 +257,11 @@ export default function App() {
         )}
         
         {/* Status Text */}
-        {!scanned && showCamera && (
+        {!scanned && (
           <View style={styles.statusContainer}>
             <View style={styles.pulsingDot} />
             <Text style={styles.statusText}>Ready to scan</Text>
+            <Text style={styles.statusHint}>Point at barcode and hold steady</Text>
           </View>
         )}
         
@@ -419,19 +362,6 @@ const styles = StyleSheet.create({
   scanner: {
     flex: 1,
   },
-  cameraContainer: {
-    flex: 1,
-  },
-  cameraLoading: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#000',
-  },
-  cameraLoadingText: {
-    color: '#fff',
-    fontSize: 16,
-  },
   gradientTop: {
     position: 'absolute',
     top: 0,
@@ -528,22 +458,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     paddingHorizontal: 20,
-    gap: 15,
   },
   controlButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
     borderRadius: 15,
     paddingVertical: 12,
-    paddingHorizontal: 20,
+    paddingHorizontal: 25,
     alignItems: 'center',
     flexDirection: 'row',
     gap: 8,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  controlButtonPrimary: {
-    backgroundColor: 'rgba(255, 24, 1, 0.2)',
-    borderColor: '#FF1801',
   },
   controlButtonActive: {
     backgroundColor: 'rgba(255, 215, 0, 0.2)',
@@ -626,10 +551,9 @@ const styles = StyleSheet.create({
     minWidth: 45,
   },
   statusContainer: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 10,
+    gap: 5,
   },
   pulsingDot: {
     width: 8,
@@ -641,6 +565,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: 'rgba(255, 255, 255, 0.8)',
     fontWeight: '500',
+  },
+  statusHint: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.5)',
   },
   resultContainer: {
     alignItems: 'center',
