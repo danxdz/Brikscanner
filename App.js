@@ -95,6 +95,13 @@ export default function App() {
     getCameraPermissions();
   }, []);
 
+  // Force remount on web when camera list or selection changes
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      setCameraKey(prev => prev + 1);
+    }
+  }, [availableCameras.length, selectedCameraIndex]);
+
   const enumerateCameras = async () => {
     try {
       if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
