@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform, Dimensions, Animated } from 'react-native';
-import { CameraView, Camera } from 'expo-camera';
+import { CameraView, Camera, CameraType } from 'expo-camera';
 import { StatusBar } from 'expo-status-bar';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -71,10 +71,11 @@ export default function App() {
   const [zoom, setZoom] = useState(0);
   const [flashOn, setFlashOn] = useState(false);
   const [f1Model, setF1Model] = useState(null);
-  const [cameraType, setCameraType] = useState('back');
-  const [cameraKey, setCameraKey] = useState(0);
+  const [cameraFacing, setCameraFacing] = useState(CameraType.back);
+  const [isSwitching, setIsSwitching] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
+  const cameraRef = useRef(null);
 
   useEffect(() => {
     (async () => {
@@ -120,20 +121,42 @@ export default function App() {
   };
 
   const handleBarcodeScanned = ({ type, data }) => {
-    setScanned(true);
-    setData(data);
-    
-    // Check if this is an F1 model code
-    const model = getF1Model(data);
-    setF1Model(model);
+    if (!scanned && !isSwitching) {
+      setScanned(true);
+      setData(data);
+      
+      // Check if this is an F1 model code
+      const model = getF1Model(data);
+      setF1Model(model);
+    }
   };
 
-  const toggleFlash = () => setFlashOn((prev) => !prev);
+  const toggleFlash = () => {
+    if (cameraFacing === CameraType.back) {
+      setFlashOn((prev) => !prev);
+    }
+  };
   
-  const toggleCamera = () => {
-    // Force camera recreation by changing key
-    setCameraType(current => current === 'back' ? 'front' : 'back');
-    setCameraKey(prev => prev + 1);
+  const toggleCamera = async () => {
+    if (isSwitching) return;
+    
+    setIsSwitching(true);
+    
+    // Add a small delay to prevent rapid switching
+    setTimeout(() => {
+      setCameraFacing(current => 
+        current === CameraType.back ? CameraType.front : CameraType.back
+      );
+      // Turn off flash when switching to front camera
+      if (cameraFacing === CameraType.back) {
+        setFlashOn(false);
+      }
+      
+      // Reset switching state after animation
+      setTimeout(() => {
+        setIsSwitching(false);
+      }, 500);
+    }, 100);
   };
 
   const resetScanner = () => {
@@ -165,17 +188,20 @@ export default function App() {
     <View style={styles.container}>
       <StatusBar style="light" />
       
-      <CameraView
-        key={cameraKey}
-        style={styles.scanner}
-        facing={cameraType}
-        onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
-        zoom={zoom}
-        enableTorch={flashOn && cameraType === 'back'}
-        barcodeScannerSettings={{
-          barcodeTypes: ["qr", "pdf417", "code128", "code39", "code93", "codabar", "ean13", "ean8", "upc_e", "datamatrix", "aztec"],
-        }}
-      />
+      {/* Camera View with opacity transition during switch */}
+      <View style={[styles.cameraContainer, isSwitching && styles.cameraSwitching]}>
+        <CameraView
+          ref={cameraRef}
+          style={styles.scanner}
+          facing={cameraFacing}
+          onBarcodeScanned={scanned || isSwitching ? undefined : handleBarcodeScanned}
+          zoom={zoom}
+          enableTorch={flashOn && cameraFacing === CameraType.back}
+          barcodeScannerSettings={{
+            barcodeTypes: ["qr", "pdf417", "code128", "code39", "code93", "codabar", "ean13", "ean8", "upc_e", "datamatrix", "aztec"],
+          }}
+        />
+      </View>
       
       {/* Gradient Overlay */}
       <View style={styles.gradientTop} />
@@ -189,7 +215,9 @@ export default function App() {
             <View style={[styles.corner, styles.topRight]} />
             <View style={[styles.corner, styles.bottomLeft]} />
             <View style={[styles.corner, styles.bottomRight]} />
-            <Text style={styles.scanHint}>Align barcode within frame</Text>
+            <Text style={styles.scanHint}>
+              {isSwitching ? 'Switching camera...' : 'Align barcode within frame'}
+            </Text>
           </View>
         </View>
       )}
@@ -197,21 +225,32 @@ export default function App() {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>🏎️ F1 Scanner</Text>
-        <Text style={styles.headerSubtitle}>Scan your F1 model codes</Text>
+        <Text style={styles.headerSubtitle}>
+          {cameraFacing === CameraType.back ? 'Back Camera' : 'Front Camera'}
+        </Text>
       </View>
       
       {/* Top Controls */}
       <View style={styles.topControls}>
         <TouchableOpacity 
-          style={[styles.controlButton, styles.controlButtonPrimary]} 
+          style={[
+            styles.controlButton, 
+            styles.controlButtonPrimary,
+            isSwitching && styles.controlButtonDisabled
+          ]} 
           onPress={toggleCamera}
           activeOpacity={0.8}
+          disabled={isSwitching}
         >
-          <Text style={styles.controlIcon}>🔄</Text>
-          <Text style={styles.controlLabel}>{cameraType === 'back' ? 'Front' : 'Back'}</Text>
+          <Text style={styles.controlIcon}>
+            {isSwitching ? '⏳' : '🔄'}
+          </Text>
+          <Text style={styles.controlLabel}>
+            {isSwitching ? 'Wait...' : (cameraFacing === CameraType.back ? 'Front' : 'Back')}
+          </Text>
         </TouchableOpacity>
         
-        {cameraType === 'back' && (
+        {cameraFacing === CameraType.back && (
           <TouchableOpacity 
             style={[styles.controlButton, flashOn && styles.controlButtonActive]} 
             onPress={toggleFlash}
@@ -277,8 +316,10 @@ export default function App() {
         {/* Status Text */}
         {!scanned && (
           <View style={styles.statusContainer}>
-            <View style={styles.pulsingDot} />
-            <Text style={styles.statusText}>Ready to scan</Text>
+            <View style={[styles.pulsingDot, isSwitching && styles.pulsingDotYellow]} />
+            <Text style={styles.statusText}>
+              {isSwitching ? 'Switching camera...' : 'Ready to scan'}
+            </Text>
           </View>
         )}
         
@@ -496,6 +537,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 215, 0, 0.2)',
     borderColor: '#FFD700',
   },
+  controlButtonDisabled: {
+    opacity: 0.5,
+    backgroundColor: 'rgba(128, 128, 128, 0.2)',
+    borderColor: 'rgba(128, 128, 128, 0.4)',
+  },
   controlIcon: {
     fontSize: 20,
   },
@@ -583,6 +629,9 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     backgroundColor: '#00FF00',
+  },
+  pulsingDotYellow: {
+    backgroundColor: '#FFD700',
   },
   statusText: {
     fontSize: 16,
@@ -718,5 +767,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textTransform: 'uppercase',
     letterSpacing: 1,
+  },
+  cameraContainer: {
+    flex: 1,
+    opacity: 1,
+  },
+  cameraSwitching: {
+    opacity: 0.3,
   },
 });
