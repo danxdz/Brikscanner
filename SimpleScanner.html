@@ -643,22 +643,23 @@
         function showResult(code) {
             let f1 = null;
             
-            // First try exact match
-            f1 = F1_CODES[code];
+            // Extract first 7 digits from the scanned code
+            const first7Digits = code.substring(0, 7);
+            console.log(`Scanned: ${code}, checking first 7 digits: ${first7Digits}`);
             
-            // If no exact match, check if the scanned code contains any of our F1 codes
+            // Try to match with first 7 digits
+            f1 = F1_CODES[first7Digits];
+            
+            // If no match with 7 digits, try first 6 digits
             if (!f1) {
+                const first6Digits = code.substring(0, 6);
+                console.log(`No match with 7 digits, trying first 6: ${first6Digits}`);
+                
+                // Check if any F1 code starts with these 6 digits
                 for (const [f1Code, f1Data] of Object.entries(F1_CODES)) {
-                    // Check if scanned code starts with or contains the F1 code
-                    if (code.startsWith(f1Code) || code.includes(f1Code)) {
+                    if (f1Code.startsWith(first6Digits)) {
                         f1 = f1Data;
-                        console.log(`Found match: ${f1Code} in ${code}`);
-                        break;
-                    }
-                    // Also check if F1 code starts with scanned code (partial scan)
-                    if (f1Code.startsWith(code) && code.length >= 6) {
-                        f1 = f1Data;
-                        console.log(`Partial match: ${code} matches ${f1Code}`);
+                        console.log(`Found match: ${f1Code} starts with ${first6Digits}`);
                         break;
                     }
                 }
@@ -683,7 +684,10 @@
                             </div>
                         </div>
                     </div>
-                    <div class="result-code">Scanned: ${code}</div>
+                    <div class="result-code">
+                        Matched: ${first7Digits}<br>
+                        <small>Full code: ${code}</small>
+                    </div>
                 `;
                 if (navigator.vibrate) navigator.vibrate(200);
             } else {
@@ -691,12 +695,12 @@
                 result.innerHTML = `
                     <div class="result-title">Unknown Code</div>
                     <div class="result-code">
-                        Scanned: ${code}<br>
-                        Length: ${code.length} characters<br>
+                        First 7 digits: ${first7Digits}<br>
+                        Full code: ${code}<br>
                         <small>Not matching any F1 model</small>
                     </div>
                 `;
-                console.log(`No match found for: ${code}`);
+                console.log(`No match found for: ${first7Digits} from ${code}`);
             }
             
             setTimeout(() => {
