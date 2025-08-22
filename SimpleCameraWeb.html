@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #000;
+            color: white;
+        }
+        video {
+            width: 100%;
+            max-width: 600px;
+            height: auto;
+            background: #222;
+            display: block;
+            margin: 20px auto;
+        }
+        select, button {
+            padding: 10px;
+            margin: 10px;
+            font-size: 16px;
+        }
+        .controls {
+            text-align: center;
+        }
+        .info {
+            background: #333;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Camera Test - Direct Browser API</h1>
+    
+    <div class="controls">
+        <button onclick="requestPermission()">Request Camera Permission</button>
+        <button onclick="startBackCamera()">Start Back Camera</button>
+        <button onclick="startFrontCamera()">Start Front Camera</button>
+        <button onclick="enumerateCameras()">List All Cameras</button>
+    </div>
+    
+    <div class="controls">
+        <label>Select Camera:</label>
+        <select id="cameraSelect" onchange="switchCamera()">
+            <option value="">-- Select Camera --</option>
+        </select>
+    </div>
+    
+    <video id="video" autoplay playsinline></video>
+    
+    <div id="info" class="info"></div>
+    
+    <script>
+        let currentStream = null;
+        const video = document.getElementById('video');
+        const info = document.getElementById('info');
+        const cameraSelect = document.getElementById('cameraSelect');
+        
+        async function requestPermission() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                stream.getTracks().forEach(track => track.stop());
+                info.innerHTML = '✅ Camera permission granted';
+                enumerateCameras();
+            } catch (err) {
+                info.innerHTML = '❌ Error: ' + err.message;
+            }
+        }
+        
+        async function startBackCamera() {
+            try {
+                stopCurrentStream();
+                const constraints = {
+                    video: {
+                        facingMode: { exact: 'environment' }
+                    }
+                };
+                info.innerHTML = 'Starting back camera with facingMode: environment...';
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                video.srcObject = stream;
+                currentStream = stream;
+                info.innerHTML = '✅ Back camera started (facingMode: environment)';
+            } catch (err) {
+                // Try without exact
+                try {
+                    const constraints = {
+                        video: {
+                            facingMode: 'environment'
+                        }
+                    };
+                    info.innerHTML = 'Trying back camera without exact...';
+                    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                    video.srcObject = stream;
+                    currentStream = stream;
+                    info.innerHTML = '✅ Back camera started (facingMode: environment, no exact)';
+                } catch (err2) {
+                    info.innerHTML = '❌ Back camera error: ' + err2.message;
+                }
+            }
+        }
+        
+        async function startFrontCamera() {
+            try {
+                stopCurrentStream();
+                const constraints = {
+                    video: {
+                        facingMode: 'user'
+                    }
+                };
+                info.innerHTML = 'Starting front camera...';
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                video.srcObject = stream;
+                currentStream = stream;
+                info.innerHTML = '✅ Front camera started';
+            } catch (err) {
+                info.innerHTML = '❌ Front camera error: ' + err.message;
+            }
+        }
+        
+        async function enumerateCameras() {
+            try {
+                // First request permission
+                const tempStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                tempStream.getTracks().forEach(track => track.stop());
+                
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                
+                info.innerHTML = `Found ${videoDevices.length} cameras:<br>`;
+                cameraSelect.innerHTML = '<option value="">-- Select Camera --</option>';
+                
+                videoDevices.forEach((device, index) => {
+                    const label = device.label || `Camera ${index + 1}`;
+                    info.innerHTML += `${index + 1}. ${label} (ID: ${device.deviceId.substring(0, 8)}...)<br>`;
+                    
+                    const option = document.createElement('option');
+                    option.value = device.deviceId;
+                    option.text = label;
+                    cameraSelect.appendChild(option);
+                });
+            } catch (err) {
+                info.innerHTML = '❌ Enumerate error: ' + err.message;
+            }
+        }
+        
+        async function switchCamera() {
+            const deviceId = cameraSelect.value;
+            if (!deviceId) return;
+            
+            try {
+                stopCurrentStream();
+                const constraints = {
+                    video: {
+                        deviceId: { exact: deviceId }
+                    }
+                };
+                info.innerHTML = 'Switching camera...';
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                video.srcObject = stream;
+                currentStream = stream;
+                info.innerHTML = '✅ Camera switched to: ' + cameraSelect.options[cameraSelect.selectedIndex].text;
+            } catch (err) {
+                info.innerHTML = '❌ Switch error: ' + err.message;
+            }
+        }
+        
+        function stopCurrentStream() {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+                currentStream = null;
+            }
+        }
+        
+        // Auto-start on load
+        window.onload = () => {
+            info.innerHTML = 'Click "Request Camera Permission" to start';
+        };
+    </script>
+</body>
+</html>
