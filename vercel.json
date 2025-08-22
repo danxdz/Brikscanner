@@ -1,8 +1,6 @@
 {
-  "buildCommand": "npm install --legacy-peer-deps && npx expo export --platform web",
   "outputDirectory": "dist",
   "framework": null,
-  "installCommand": "npm install --legacy-peer-deps",
   "rewrites": [
     {
       "source": "/(.*)",
