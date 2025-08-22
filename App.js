@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Button, Platform, Picker } from 'react-native';
+import { View, Text, StyleSheet, Button, Platform } from 'react-native';
 import { CameraView, Camera } from 'expo-camera';
-import WebCamera from './WebCamera';
 
 // F1 Car Models Lookup Table - Each model has 2 separate codes
 const F1_CODE_LOOKUP = {
@@ -79,7 +78,7 @@ export default function App() {
   const [zoom, setZoom] = useState(0);
   const [flashOn, setFlashOn] = useState(false);
   const [availableCameras, setAvailableCameras] = useState([]);
-  const [selectedCamera, setSelectedCamera] = useState(null);
+  const [selectedCameraIndex, setSelectedCameraIndex] = useState(0);
   const [cameraKey, setCameraKey] = useState(0);
 
   useEffect(() => {
@@ -131,14 +130,15 @@ export default function App() {
           return {
             deviceId: device.deviceId,
             label: label,
-            originalLabel: device.label
+            originalLabel: device.label,
+            index: index
           };
         });
         
         setAvailableCameras(cameras);
         
         // Try to select back camera by default
-        const backCamera = cameras.find(cam => 
+        const backCameraIndex = cameras.findIndex(cam => 
           cam.originalLabel && (
             cam.originalLabel.toLowerCase().includes('back') || 
             cam.originalLabel.toLowerCase().includes('rear') ||
@@ -146,13 +146,11 @@ export default function App() {
           )
         );
         
-        if (backCamera) {
-          setSelectedCamera(backCamera.deviceId);
+        if (backCameraIndex !== -1) {
+          setSelectedCameraIndex(backCameraIndex);
         } else if (cameras.length > 1) {
-          // If no back camera found, select the second one (often back on mobile)
-          setSelectedCamera(cameras[1].deviceId);
-        } else if (cameras.length > 0) {
-          setSelectedCamera(cameras[0].deviceId);
+          // If no back camera found, select the last one (often back on mobile)
+          setSelectedCameraIndex(cameras.length - 1);
         }
       }
     } catch (error) {
@@ -160,9 +158,9 @@ export default function App() {
     }
   };
 
-  const handleCameraChange = (deviceId) => {
-    setSelectedCamera(deviceId);
-    // Force camera to reinitialize with new device
+  const handleCameraChange = (index) => {
+    setSelectedCameraIndex(parseInt(index));
+    // Force camera to reinitialize
     setCameraKey(prev => prev + 1);
   };
 
@@ -195,31 +193,30 @@ export default function App() {
     );
   }
 
-  // Use custom WebCamera for web, expo-camera for native
-  const CameraComponent = Platform.OS === 'web' ? (
-    <WebCamera
-      style={styles.scanner}
-      selectedDeviceId={selectedCamera}
-      onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
-      zoom={zoom}
-      flashOn={flashOn}
-    />
-  ) : (
-    <CameraView
-      style={styles.scanner}
-      facing="back"
-      onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
-      zoom={zoom}
-      enableTorch={flashOn}
-      barcodeScannerSettings={{
-        barcodeTypes: ["qr", "pdf417", "code128", "code39", "code93", "codabar", "ean13", "ean8", "upc_e", "datamatrix", "aztec"],
-      }}
-    />
-  );
+  // Determine facing based on camera index
+  const getFacing = () => {
+    if (Platform.OS !== 'web') {
+      return 'back';
+    }
+    
+    // For web, alternate between front and back based on index
+    // Even index = back, odd index = front (this is a common pattern)
+    return selectedCameraIndex % 2 === 0 ? 'back' : 'front';
+  };
 
   return (
     <View style={styles.container}>
-      {CameraComponent}
+      <CameraView
+        key={cameraKey}
+        style={styles.scanner}
+        facing={getFacing()}
+        onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
+        zoom={zoom}
+        enableTorch={flashOn}
+        barcodeScannerSettings={{
+          barcodeTypes: ["qr", "pdf417", "code128", "code39", "code93", "codabar", "ean13", "ean8", "upc_e", "datamatrix", "aztec"],
+        }}
+      />
       
       <View style={styles.bottomContainer}>
         {/* Camera Selector for Web */}
@@ -227,18 +224,21 @@ export default function App() {
           <View style={styles.cameraSelector}>
             <Text style={styles.selectorLabel}>📷 Camera Selection</Text>
             <select
-              value={selectedCamera || ''}
+              value={selectedCameraIndex}
               onChange={(e) => handleCameraChange(e.target.value)}
               style={styles.webSelect}
             >
               {availableCameras.map((camera) => (
-                <option key={camera.deviceId} value={camera.deviceId}>
+                <option key={camera.index} value={camera.index}>
                   {camera.label}
                 </option>
               ))}
             </select>
             <Text style={styles.cameraCount}>
               Found {availableCameras.length} camera{availableCameras.length !== 1 ? 's' : ''}
+            </Text>
+            <Text style={styles.cameraHint}>
+              Try each camera to find the back one
             </Text>
           </View>
         )}
@@ -414,5 +414,11 @@ const styles = StyleSheet.create({
     color: '#00ff00',
     fontSize: 12,
     marginTop: 5,
+  },
+  cameraHint: {
+    color: '#ffa500',
+    fontSize: 11,
+    marginTop: 3,
+    fontStyle: 'italic',
   },
 });
