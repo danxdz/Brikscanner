@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Button } from 'react-native';
+import { View, Text, StyleSheet, Button, Platform, Picker } from 'react-native';
 import { CameraView, Camera } from 'expo-camera';
+import WebCamera from './WebCamera';
 
 // F1 Car Models Lookup Table - Each model has 2 separate codes
 const F1_CODE_LOOKUP = {
@@ -77,15 +78,93 @@ export default function App() {
   const [f1Model, setF1Model] = useState(null);
   const [zoom, setZoom] = useState(0);
   const [flashOn, setFlashOn] = useState(false);
+  const [availableCameras, setAvailableCameras] = useState([]);
+  const [selectedCamera, setSelectedCamera] = useState(null);
+  const [cameraKey, setCameraKey] = useState(0);
 
   useEffect(() => {
     const getCameraPermissions = async () => {
       const { status } = await Camera.requestCameraPermissionsAsync();
       setHasPermission(status === 'granted');
+      
+      // After permission, enumerate cameras on web
+      if (status === 'granted' && Platform.OS === 'web') {
+        enumerateCameras();
+      }
     };
 
     getCameraPermissions();
   }, []);
+
+  const enumerateCameras = async () => {
+    try {
+      if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
+        // First get permission by accessing camera once
+        await navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+          stream.getTracks().forEach(track => track.stop());
+        });
+        
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter(device => device.kind === 'videoinput');
+        
+        console.log('Found cameras:', videoDevices);
+        
+        // Create camera list with better labels
+        const cameras = videoDevices.map((device, index) => {
+          let label = device.label || `Camera ${index + 1}`;
+          
+          // Try to identify camera type from label
+          if (label.toLowerCase().includes('back') || label.toLowerCase().includes('rear')) {
+            label = `📷 Back Camera`;
+          } else if (label.toLowerCase().includes('front')) {
+            label = `🤳 Front Camera`;
+          } else if (label.toLowerCase().includes('wide')) {
+            label = `📐 Wide Camera`;
+          } else if (label.toLowerCase().includes('telephoto')) {
+            label = `🔭 Telephoto Camera`;
+          } else if (label.toLowerCase().includes('ultra')) {
+            label = `🌐 Ultra-wide Camera`;
+          } else {
+            label = `📹 Camera ${index + 1}`;
+          }
+          
+          return {
+            deviceId: device.deviceId,
+            label: label,
+            originalLabel: device.label
+          };
+        });
+        
+        setAvailableCameras(cameras);
+        
+        // Try to select back camera by default
+        const backCamera = cameras.find(cam => 
+          cam.originalLabel && (
+            cam.originalLabel.toLowerCase().includes('back') || 
+            cam.originalLabel.toLowerCase().includes('rear') ||
+            cam.originalLabel.toLowerCase().includes('environment')
+          )
+        );
+        
+        if (backCamera) {
+          setSelectedCamera(backCamera.deviceId);
+        } else if (cameras.length > 1) {
+          // If no back camera found, select the second one (often back on mobile)
+          setSelectedCamera(cameras[1].deviceId);
+        } else if (cameras.length > 0) {
+          setSelectedCamera(cameras[0].deviceId);
+        }
+      }
+    } catch (error) {
+      console.error('Error enumerating cameras:', error);
+    }
+  };
+
+  const handleCameraChange = (deviceId) => {
+    setSelectedCamera(deviceId);
+    // Force camera to reinitialize with new device
+    setCameraKey(prev => prev + 1);
+  };
 
   const handleBarcodeScanned = ({ type, data }) => {
     setScanned(true);
@@ -116,20 +195,54 @@ export default function App() {
     );
   }
 
+  // Use custom WebCamera for web, expo-camera for native
+  const CameraComponent = Platform.OS === 'web' ? (
+    <WebCamera
+      style={styles.scanner}
+      selectedDeviceId={selectedCamera}
+      onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
+      zoom={zoom}
+      flashOn={flashOn}
+    />
+  ) : (
+    <CameraView
+      style={styles.scanner}
+      facing="back"
+      onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
+      zoom={zoom}
+      enableTorch={flashOn}
+      barcodeScannerSettings={{
+        barcodeTypes: ["qr", "pdf417", "code128", "code39", "code93", "codabar", "ean13", "ean8", "upc_e", "datamatrix", "aztec"],
+      }}
+    />
+  );
+
   return (
     <View style={styles.container}>
-      <CameraView
-        style={styles.scanner}
-        facing="back"
-        onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
-        zoom={zoom}
-        enableTorch={flashOn}
-        barcodeScannerSettings={{
-          barcodeTypes: ["qr", "pdf417", "code128", "code39", "code93", "codabar", "ean13", "ean8", "upc_e", "datamatrix", "aztec"],
-        }}
-      />
+      {CameraComponent}
       
       <View style={styles.bottomContainer}>
+        {/* Camera Selector for Web */}
+        {Platform.OS === 'web' && availableCameras.length > 0 && !scanned && (
+          <View style={styles.cameraSelector}>
+            <Text style={styles.selectorLabel}>📷 Camera Selection</Text>
+            <select
+              value={selectedCamera || ''}
+              onChange={(e) => handleCameraChange(e.target.value)}
+              style={styles.webSelect}
+            >
+              {availableCameras.map((camera) => (
+                <option key={camera.deviceId} value={camera.deviceId}>
+                  {camera.label}
+                </option>
+              ))}
+            </select>
+            <Text style={styles.cameraCount}>
+              Found {availableCameras.length} camera{availableCameras.length !== 1 ? 's' : ''}
+            </Text>
+          </View>
+        )}
+        
         <Text style={styles.statusText}>
           {scanned ? `Scanned: ${data}` : 'Point camera at a barcode or QR code'}
         </Text>
@@ -273,5 +386,33 @@ const styles = StyleSheet.create({
     color: '#ffa500',
     fontSize: 16,
     textAlign: 'center',
+  },
+  cameraSelector: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 10,
+    alignItems: 'center',
+  },
+  selectorLabel: {
+    color: 'white',
+    fontSize: 14,
+    marginBottom: 5,
+    fontWeight: '600',
+  },
+  webSelect: {
+    padding: '8px 12px',
+    fontSize: '14px',
+    borderRadius: '6px',
+    border: '1px solid #ccc',
+    backgroundColor: 'white',
+    color: 'black',
+    minWidth: '200px',
+    marginBottom: 5,
+  },
+  cameraCount: {
+    color: '#00ff00',
+    fontSize: 12,
+    marginTop: 5,
   },
 });
