@@ -41,7 +41,7 @@
             right: 0;
             background: rgba(0,0,0,0.9);
             padding: 10px;
-            max-height: 120px;
+            max-height: 160px;
         }
         
         select {
@@ -53,6 +53,46 @@
             border: none;
             border-radius: 5px;
             margin-bottom: 8px;
+        }
+        
+        .zoom-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            background: rgba(255,255,255,0.1);
+            padding: 5px;
+            border-radius: 5px;
+        }
+        
+        .zoom-label {
+            color: white;
+            font-size: 12px;
+            min-width: 60px;
+        }
+        
+        .zoom-slider {
+            flex: 1;
+            height: 4px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 2px;
+            position: relative;
+        }
+        
+        .zoom-fill {
+            height: 100%;
+            background: #FF1801;
+            border-radius: 2px;
+            transition: width 0.2s;
+        }
+        
+        input[type="range"] {
+            position: absolute;
+            width: 100%;
+            height: 20px;
+            opacity: 0;
+            cursor: pointer;
+            top: -8px;
         }
         
         .button-group {
@@ -80,10 +120,15 @@
             background: #666;
         }
         
+        button.active {
+            background: #FFD700;
+            color: black;
+        }
+        
         /* Status */
         .status {
             position: fixed;
-            bottom: 110px;
+            bottom: 150px;
             left: 10px;
             right: 10px;
             background: rgba(0, 0, 0, 0.7);
@@ -178,8 +223,16 @@
             <select id="cameraSelect">
                 <option value="">Select Camera</option>
             </select>
+            <div class="zoom-controls">
+                <span class="zoom-label">Zoom: <span id="zoomValue">0%</span></span>
+                <div class="zoom-slider">
+                    <div class="zoom-fill" id="zoomFill" style="width: 0%"></div>
+                    <input type="range" id="zoomSlider" min="0" max="100" value="0">
+                </div>
+            </div>
             <div class="button-group">
-                <button class="secondary" onclick="switchCamera()">Switch Camera</button>
+                <button class="secondary" onclick="switchCamera()">📷 Switch</button>
+                <button class="secondary" onclick="toggleFlash()" id="flashBtn">💡 Flash</button>
                 <button onclick="toggleScan()" id="scanBtn">Start Scan</button>
             </div>
         </div>
@@ -189,12 +242,21 @@
         let stream = null;
         let scanning = false;
         let currentMode = 'environment';
+        let currentCameraIndex = 0;
+        let cameras = [];
+        let zoom = 0;
+        let flashOn = false;
+        let videoTrack = null;
         
         const video = document.getElementById('video');
         const result = document.getElementById('result');
         const status = document.getElementById('status');
         const cameraSelect = document.getElementById('cameraSelect');
         const scanBtn = document.getElementById('scanBtn');
+        const flashBtn = document.getElementById('flashBtn');
+        const zoomSlider = document.getElementById('zoomSlider');
+        const zoomValue = document.getElementById('zoomValue');
+        const zoomFill = document.getElementById('zoomFill');
         
         // F1 codes
         const F1_CODES = {
@@ -233,7 +295,7 @@
                 
                 // List cameras
                 const devices = await navigator.mediaDevices.enumerateDevices();
-                const cameras = devices.filter(d => d.kind === 'videoinput');
+                cameras = devices.filter(d => d.kind === 'videoinput');
                 
                 cameraSelect.innerHTML = '';
                 cameras.forEach((cam, i) => {
@@ -245,7 +307,12 @@
                 
                 status.textContent = `Found ${cameras.length} camera(s)`;
                 
-                // Start with back camera
+                // Start with back camera (try last camera first, usually back)
+                if (cameras.length > 1) {
+                    currentCameraIndex = cameras.length - 1;
+                    cameraSelect.selectedIndex = currentCameraIndex;
+                }
+                
                 startCamera();
             } catch (err) {
                 status.textContent = 'Camera permission denied';
@@ -262,11 +329,33 @@
                 
                 const deviceId = cameraSelect.value;
                 const constraints = deviceId 
-                    ? { video: { deviceId: { exact: deviceId } } }
-                    : { video: { facingMode: currentMode } };
+                    ? { video: { 
+                        deviceId: { exact: deviceId },
+                        torch: flashOn 
+                      } }
+                    : { video: { 
+                        facingMode: currentMode,
+                        torch: flashOn 
+                      } };
                 
                 stream = await navigator.mediaDevices.getUserMedia(constraints);
                 video.srcObject = stream;
+                
+                // Get video track for zoom and flash
+                videoTrack = stream.getVideoTracks()[0];
+                
+                // Setup zoom if supported
+                if (videoTrack.getCapabilities) {
+                    const capabilities = videoTrack.getCapabilities();
+                    if (capabilities.zoom) {
+                        const { min, max } = capabilities.zoom;
+                        zoomSlider.min = min;
+                        zoomSlider.max = max;
+                        zoomSlider.value = min;
+                        applyZoom(min);
+                    }
+                }
+                
                 status.textContent = 'Camera ready - position barcode in frame';
                 
                 // Start scanning automatically
@@ -274,6 +363,52 @@
             } catch (err) {
                 console.error(err);
                 status.textContent = 'Camera error - try switching';
+            }
+        }
+        
+        // Apply zoom
+        function applyZoom(value) {
+            if (videoTrack && videoTrack.applyConstraints) {
+                videoTrack.applyConstraints({
+                    advanced: [{ zoom: parseFloat(value) }]
+                }).then(() => {
+                    const percent = ((value - zoomSlider.min) / (zoomSlider.max - zoomSlider.min)) * 100;
+                    zoomValue.textContent = Math.round(percent) + '%';
+                    zoomFill.style.width = percent + '%';
+                }).catch(err => console.log('Zoom not supported'));
+            }
+        }
+        
+        // Zoom slider change
+        zoomSlider.addEventListener('input', (e) => {
+            applyZoom(e.target.value);
+        });
+        
+        // Toggle flash
+        async function toggleFlash() {
+            flashOn = !flashOn;
+            flashBtn.classList.toggle('active', flashOn);
+            flashBtn.textContent = flashOn ? '🔦 Flash' : '💡 Flash';
+            
+            if (videoTrack && videoTrack.applyConstraints) {
+                try {
+                    await videoTrack.applyConstraints({
+                        advanced: [{ torch: flashOn }]
+                    });
+                } catch (err) {
+                    console.log('Flash not supported');
+                    // Try restarting camera with torch constraint
+                    startCamera();
+                }
+            }
+        }
+        
+        // Switch camera - cycle through all cameras
+        function switchCamera() {
+            if (cameras.length > 1) {
+                currentCameraIndex = (currentCameraIndex + 1) % cameras.length;
+                cameraSelect.selectedIndex = currentCameraIndex;
+                startCamera();
             }
         }
         
@@ -344,12 +479,6 @@
             setTimeout(() => {
                 result.style.display = 'none';
             }, 3000);
-        }
-        
-        // Switch camera
-        function switchCamera() {
-            currentMode = currentMode === 'environment' ? 'user' : 'environment';
-            startCamera();
         }
         
         // Toggle scanning
