@@ -14,7 +14,7 @@
     "serve:web": "npx serve dist",
     "deploy:netlify": "npm run build:web && npx netlify deploy --prod --dir=dist",
     "deploy:surge": "npm run build:web && npx surge dist f1-scanner.surge.sh",
-    "vercel-build": "npm install @expo/metro-runtime@~3.2.3 --legacy-peer-deps && npx expo export --platform web --output-dir dist"
+    "vercel-build": "npx expo export --platform web --output-dir dist"
   },
   "dependencies": {
     "@expo/metro-runtime": "~3.2.3",
