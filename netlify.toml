@@ -1,5 +1,5 @@
 [build]
-  command = "npm install --legacy-peer-deps && npx expo install @expo/metro-runtime && npx expo export --platform web"
+  command = "npm ci --legacy-peer-deps && npx expo export --platform web --output-dir dist"
   publish = "dist"
 
 [build.environment]
