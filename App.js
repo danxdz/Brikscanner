@@ -59,19 +59,20 @@ const getF1Model = (scannedData) => {
     return null;
   }
 
-  // Find exact 7-digit numeric tokens (not part of longer digit runs)
-  const tokens = raw.match(/(?<!\d)\d{7}(?!\d)/g) || [];
-
-  for (const token of tokens) {
-    const info = F1_CODE_LOOKUP[token];
-    if (info) {
-      return {
-        model: info.model,
-        scannedCode: token,
-        scannedCodeType: info.codeType,
-        otherCode: info.otherCode,
-        otherCodeType: info.codeType === 'Code 1' ? 'Code 2' : 'Code 1'
-      };
+  // Safari-safe: extract numeric clusters and only accept exact 7-digit clusters
+  const clusters = raw.match(/\d+/g) || [];
+  for (const cluster of clusters) {
+    if (cluster.length === 7) {
+      const info = F1_CODE_LOOKUP[cluster];
+      if (info) {
+        return {
+          model: info.model,
+          scannedCode: cluster,
+          scannedCodeType: info.codeType,
+          otherCode: info.otherCode,
+          otherCodeType: info.codeType === 'Code 1' ? 'Code 2' : 'Code 1'
+        };
+      }
     }
   }
 
