@@ -199,9 +199,15 @@ export default function App() {
       return 'back';
     }
     
-    // For web, alternate between front and back based on index
-    // Even index = back, odd index = front (this is a common pattern)
-    return selectedCameraIndex % 2 === 0 ? 'back' : 'front';
+    // For web, try different approaches based on index
+    if (selectedCameraIndex === 0) {
+      return 'back';  // First try back
+    } else if (selectedCameraIndex === 1) {
+      return 'front'; // Then front
+    } else {
+      // For additional cameras, alternate
+      return selectedCameraIndex % 2 === 0 ? 'back' : 'front';
+    }
   };
 
   return (

@@ -1,9 +1,17 @@
 {
   "installCommand": "npm install --legacy-peer-deps",
-  "buildCommand": "npm run vercel-build",
+  "buildCommand": "npm run vercel-build && cp SimpleCameraWeb.html dist/camera-test.html && cp SimpleScanner.html dist/scanner.html",
   "outputDirectory": "dist",
   "framework": null,
   "rewrites": [
+    {
+      "source": "/camera-test.html",
+      "destination": "/camera-test.html"
+    },
+    {
+      "source": "/scanner.html", 
+      "destination": "/scanner.html"
+    },
     {
       "source": "/(.*)",
       "destination": "/index.html"
