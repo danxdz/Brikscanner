@@ -94,6 +94,8 @@ export default function App() {
   const webStreamRef = useRef(null);
   const webVideoTrackRef = useRef(null);
   const webScanRafRef = useRef(null);
+  const webCanvasRef = useRef(null);
+  const webDetectorRef = useRef(null);
 
   useEffect(() => {
     const getCameraPermissions = async () => {
@@ -248,18 +250,54 @@ export default function App() {
     if (typeof window === 'undefined' || !webVideoRef.current) return;
     if (!('BarcodeDetector' in window)) return;
 
-    const detector = new window.BarcodeDetector({
-      formats: ['code_128', 'code_39', 'code_93', 'ean_13', 'ean_8', 'upc_e', 'qr_code', 'pdf417', 'aztec', 'data_matrix']
-    });
+    if (!webDetectorRef.current) {
+      webDetectorRef.current = new window.BarcodeDetector({
+        formats: ['code_128', 'code_39', 'code_93', 'ean_13', 'ean_8', 'upc_e', 'qr_code', 'pdf417', 'aztec', 'data_matrix']
+      });
+    }
 
     const scan = async () => {
       if (!webVideoRef.current || scanned) return;
       try {
-        const barcodes = await detector.detect(webVideoRef.current);
-        if (barcodes && barcodes.length > 0) {
-          const code = barcodes[0].rawValue;
-          handleBarcodeScanned({ type: 'web', data: code });
-          return; // stop scanning after first detection; state will update
+        const video = webVideoRef.current;
+        const vw = video.videoWidth || 0;
+        const vh = video.videoHeight || 0;
+        if (vw && vh) {
+          // Prepare canvas matching a centered crop region (60% of min dimension)
+          const cropScale = 0.6;
+          const cropW = Math.floor(vw * cropScale);
+          const cropH = Math.floor(vh * cropScale);
+          const sx = Math.floor((vw - cropW) / 2);
+          const sy = Math.floor((vh - cropH) / 2);
+
+          if (!webCanvasRef.current) {
+            webCanvasRef.current = document.createElement('canvas');
+          }
+          const canvas = webCanvasRef.current;
+          canvas.width = cropW;
+          canvas.height = cropH;
+          const ctx = canvas.getContext('2d', { willReadFrequently: true });
+          ctx.drawImage(video, sx, sy, cropW, cropH, 0, 0, cropW, cropH);
+
+          const detector = webDetectorRef.current;
+          const barcodes = await detector.detect(canvas);
+
+          if (barcodes && barcodes.length > 0) {
+            // Prefer any barcode whose rawValue resolves to a valid F1 model
+            let chosen = null;
+            for (const b of barcodes) {
+              const candidate = getF1Model(b.rawValue);
+              if (candidate) {
+                chosen = { data: b.rawValue, model: candidate };
+                break;
+              }
+            }
+            // Fallback to first if none matched, but proceed to next frame
+            if (chosen) {
+              handleBarcodeScanned({ type: 'web', data: chosen.data });
+              return;
+            }
+          }
         }
       } catch {}
       webScanRafRef.current = requestAnimationFrame(scan);
@@ -463,21 +501,21 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    paddingVertical: 20,
-    paddingHorizontal: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
     alignItems: 'center',
   },
   statusText: {
     color: 'white',
-    fontSize: 18,
-    marginBottom: 8,
+    fontSize: 14,
+    marginBottom: 6,
     textAlign: 'center',
     fontWeight: '500',
   },
   zoomText: {
     color: '#cccccc',
-    fontSize: 14,
-    marginBottom: 12,
+    fontSize: 12,
+    marginBottom: 8,
     textAlign: 'center',
   },
   permissionText: {
@@ -492,44 +530,44 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   f1InfoContainer: {
-    backgroundColor: 'rgba(0, 255, 0, 0.2)',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 15,
+    backgroundColor: 'rgba(0, 255, 0, 0.18)',
+    borderRadius: 6,
+    padding: 8,
+    marginBottom: 10,
     borderWidth: 1,
     borderColor: '#00ff00',
   },
   f1ModelText: {
     color: '#00ff00',
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   f1ScannedText: {
     color: '#ffffff',
-    fontSize: 16,
+    fontSize: 12,
     textAlign: 'center',
-    marginBottom: 4,
+    marginBottom: 2,
     fontWeight: '600',
   },
   f1OtherText: {
     color: '#cccccc',
-    fontSize: 14,
+    fontSize: 12,
     textAlign: 'center',
-    marginBottom: 2,
+    marginBottom: 0,
   },
   noMatchContainer: {
-    backgroundColor: 'rgba(255, 165, 0, 0.2)',
-    borderRadius: 8,
-    padding: 8,
-    marginBottom: 15,
+    backgroundColor: 'rgba(255, 165, 0, 0.18)',
+    borderRadius: 6,
+    padding: 6,
+    marginBottom: 10,
     borderWidth: 1,
     borderColor: '#ffa500',
   },
   noMatchText: {
     color: '#ffa500',
-    fontSize: 16,
+    fontSize: 12,
     textAlign: 'center',
   },
   cameraSelector: {
