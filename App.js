@@ -78,6 +78,10 @@ export default function App() {
   const slideAnim = useRef(new Animated.Value(50)).current;
   const cameraRef = useRef(null);
 
+  const resolvedFacing = Platform.OS === 'web'
+    ? (useBackCamera ? 'front' : 'back')
+    : (useBackCamera ? 'back' : 'front');
+
   useEffect(() => {
     (async () => {
       const { status } = await Camera.requestCameraPermissionsAsync();
@@ -168,12 +172,12 @@ export default function App() {
       {/* Camera View - Always try back camera first */}
       <View style={styles.cameraContainer}>
         <CameraView
-          key={useBackCamera ? 'back' : 'front'}
+          key={resolvedFacing}
           style={styles.scanner}
-          facing={useBackCamera ? 'back' : 'front'}
+          facing={resolvedFacing}
           onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
           zoom={zoom}
-          enableTorch={flashOn && useBackCamera}
+          enableTorch={flashOn && resolvedFacing === 'back'}
           barcodeScannerSettings={{
             barcodeTypes: ["qr", "pdf417", "code128", "code39", "code93", "codabar", "ean13", "ean8", "upc_e", "datamatrix", "aztec"],
           }}
@@ -201,7 +205,7 @@ export default function App() {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>🏎️ F1 Scanner</Text>
         <Text style={styles.headerSubtitle}>
-          {useBackCamera ? 'Rear Camera' : 'Front Camera (Not Recommended)'}
+          {resolvedFacing === 'back' ? 'Rear Camera' : 'Front Camera (Not Recommended)'}
         </Text>
       </View>
       
@@ -218,7 +222,7 @@ export default function App() {
         </TouchableOpacity>
         
         {/* Flash Button - Only show for back camera */}
-        {useBackCamera && (
+        {resolvedFacing === 'back' && (
           <TouchableOpacity 
             style={[styles.controlButton, flashOn && styles.controlButtonActive]} 
             onPress={toggleFlash}
