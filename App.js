@@ -168,6 +168,7 @@ export default function App() {
       {/* Camera View - Always try back camera first */}
       <View style={styles.cameraContainer}>
         <CameraView
+          key={useBackCamera ? 'back' : 'front'}
           style={styles.scanner}
           facing={useBackCamera ? 'back' : 'front'}
           onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
