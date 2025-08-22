@@ -641,7 +641,28 @@
         
         // Show result
         function showResult(code) {
-            const f1 = F1_CODES[code];
+            let f1 = null;
+            
+            // First try exact match
+            f1 = F1_CODES[code];
+            
+            // If no exact match, check if the scanned code contains any of our F1 codes
+            if (!f1) {
+                for (const [f1Code, f1Data] of Object.entries(F1_CODES)) {
+                    // Check if scanned code starts with or contains the F1 code
+                    if (code.startsWith(f1Code) || code.includes(f1Code)) {
+                        f1 = f1Data;
+                        console.log(`Found match: ${f1Code} in ${code}`);
+                        break;
+                    }
+                    // Also check if F1 code starts with scanned code (partial scan)
+                    if (f1Code.startsWith(code) && code.length >= 6) {
+                        f1 = f1Data;
+                        console.log(`Partial match: ${code} matches ${f1Code}`);
+                        break;
+                    }
+                }
+            }
             
             result.style.display = 'block';
             
@@ -662,15 +683,20 @@
                             </div>
                         </div>
                     </div>
-                    <div class="result-code">Barcode: ${code}</div>
+                    <div class="result-code">Scanned: ${code}</div>
                 `;
                 if (navigator.vibrate) navigator.vibrate(200);
             } else {
                 result.className = 'error';
                 result.innerHTML = `
                     <div class="result-title">Unknown Code</div>
-                    <div class="result-code">${code}</div>
+                    <div class="result-code">
+                        Scanned: ${code}<br>
+                        Length: ${code.length} characters<br>
+                        <small>Not matching any F1 model</small>
+                    </div>
                 `;
+                console.log(`No match found for: ${code}`);
             }
             
             setTimeout(() => {
