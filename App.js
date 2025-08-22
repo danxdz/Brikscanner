@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform, Dimensions, Animated } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Platform, Dimensions, Animated, ScrollView } from 'react-native';
 import { CameraView, Camera } from 'expo-camera';
 import { StatusBar } from 'expo-status-bar';
 
@@ -71,8 +71,9 @@ export default function App() {
   const [zoom, setZoom] = useState(0);
   const [flashOn, setFlashOn] = useState(false);
   const [f1Model, setF1Model] = useState(null);
-  const [cameraFacing, setCameraFacing] = useState('back');
-  const [isSwitching, setIsSwitching] = useState(false);
+  // Always default to back camera, only show front if explicitly selected
+  const [useBackCamera, setUseBackCamera] = useState(true);
+  const [showCameraOptions, setShowCameraOptions] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
   const cameraRef = useRef(null);
@@ -121,7 +122,7 @@ export default function App() {
   };
 
   const handleBarcodeScanned = ({ type, data }) => {
-    if (!scanned && !isSwitching) {
+    if (!scanned) {
       setScanned(true);
       setData(data);
       
@@ -132,31 +133,7 @@ export default function App() {
   };
 
   const toggleFlash = () => {
-    if (cameraFacing === 'back') {
-      setFlashOn((prev) => !prev);
-    }
-  };
-  
-  const toggleCamera = async () => {
-    if (isSwitching) return;
-    
-    setIsSwitching(true);
-    
-    // Add a small delay to prevent rapid switching
-    setTimeout(() => {
-      setCameraFacing(current => 
-        current === 'back' ? 'front' : 'back'
-      );
-      // Turn off flash when switching to front camera
-      if (cameraFacing === 'back') {
-        setFlashOn(false);
-      }
-      
-      // Reset switching state after animation
-      setTimeout(() => {
-        setIsSwitching(false);
-      }, 500);
-    }, 100);
+    setFlashOn((prev) => !prev);
   };
 
   const resetScanner = () => {
@@ -188,15 +165,14 @@ export default function App() {
     <View style={styles.container}>
       <StatusBar style="light" />
       
-      {/* Camera View with opacity transition during switch */}
-      <View style={[styles.cameraContainer, isSwitching && styles.cameraSwitching]}>
+      {/* Camera View - Always try back camera first */}
+      <View style={styles.cameraContainer}>
         <CameraView
-          ref={cameraRef}
           style={styles.scanner}
-          facing={cameraFacing}
-          onBarcodeScanned={scanned || isSwitching ? undefined : handleBarcodeScanned}
+          facing={useBackCamera ? 'back' : 'front'}
+          onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
           zoom={zoom}
-          enableTorch={flashOn && cameraFacing === 'back'}
+          enableTorch={flashOn && useBackCamera}
           barcodeScannerSettings={{
             barcodeTypes: ["qr", "pdf417", "code128", "code39", "code93", "codabar", "ean13", "ean8", "upc_e", "datamatrix", "aztec"],
           }}
@@ -215,9 +191,7 @@ export default function App() {
             <View style={[styles.corner, styles.topRight]} />
             <View style={[styles.corner, styles.bottomLeft]} />
             <View style={[styles.corner, styles.bottomRight]} />
-            <Text style={styles.scanHint}>
-              {isSwitching ? 'Switching camera...' : 'Align barcode within frame'}
-            </Text>
+            <Text style={styles.scanHint}>Align barcode within frame</Text>
           </View>
         </View>
       )}
@@ -226,31 +200,24 @@ export default function App() {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>🏎️ F1 Scanner</Text>
         <Text style={styles.headerSubtitle}>
-          {cameraFacing === 'back' ? 'Back Camera' : 'Front Camera'}
+          {useBackCamera ? 'Rear Camera' : 'Front Camera (Not Recommended)'}
         </Text>
       </View>
       
       {/* Top Controls */}
       <View style={styles.topControls}>
+        {/* Camera Options Button */}
         <TouchableOpacity 
-          style={[
-            styles.controlButton, 
-            styles.controlButtonPrimary,
-            isSwitching && styles.controlButtonDisabled
-          ]} 
-          onPress={toggleCamera}
+          style={[styles.controlButton, styles.controlButtonPrimary]} 
+          onPress={() => setShowCameraOptions(!showCameraOptions)}
           activeOpacity={0.8}
-          disabled={isSwitching}
         >
-          <Text style={styles.controlIcon}>
-            {isSwitching ? '⏳' : '🔄'}
-          </Text>
-          <Text style={styles.controlLabel}>
-            {isSwitching ? 'Wait...' : (cameraFacing === 'back' ? 'Front' : 'Back')}
-          </Text>
+          <Text style={styles.controlIcon}>📷</Text>
+          <Text style={styles.controlLabel}>Camera</Text>
         </TouchableOpacity>
         
-        {cameraFacing === 'back' && (
+        {/* Flash Button - Only show for back camera */}
+        {useBackCamera && (
           <TouchableOpacity 
             style={[styles.controlButton, flashOn && styles.controlButtonActive]} 
             onPress={toggleFlash}
@@ -261,6 +228,41 @@ export default function App() {
           </TouchableOpacity>
         )}
       </View>
+      
+      {/* Camera Options Dropdown */}
+      {showCameraOptions && (
+        <View style={styles.cameraOptionsContainer}>
+          <Text style={styles.optionsTitle}>Select Camera:</Text>
+          <TouchableOpacity 
+            style={[styles.optionButton, useBackCamera && styles.optionButtonActive]}
+            onPress={() => {
+              setUseBackCamera(true);
+              setShowCameraOptions(false);
+              setFlashOn(false);
+            }}
+          >
+            <Text style={styles.optionIcon}>📸</Text>
+            <Text style={styles.optionText}>Back Camera (Recommended)</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.optionButton, !useBackCamera && styles.optionButtonActive]}
+            onPress={() => {
+              setUseBackCamera(false);
+              setShowCameraOptions(false);
+              setFlashOn(false);
+            }}
+          >
+            <Text style={styles.optionIcon}>🤳</Text>
+            <Text style={styles.optionText}>Front Camera</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.closeButton}
+            onPress={() => setShowCameraOptions(false)}
+          >
+            <Text style={styles.closeButtonText}>✕ Close</Text>
+          </TouchableOpacity>
+        </View>
+      )}
       
       {/* Bottom Container */}
       <View style={[styles.bottomContainer, scanned && styles.bottomContainerExpanded]}>
@@ -316,10 +318,8 @@ export default function App() {
         {/* Status Text */}
         {!scanned && (
           <View style={styles.statusContainer}>
-            <View style={[styles.pulsingDot, isSwitching && styles.pulsingDotYellow]} />
-            <Text style={styles.statusText}>
-              {isSwitching ? 'Switching camera...' : 'Ready to scan'}
-            </Text>
+            <View style={styles.pulsingDot} />
+            <Text style={styles.statusText}>Ready to scan</Text>
           </View>
         )}
         
@@ -774,5 +774,58 @@ const styles = StyleSheet.create({
   },
   cameraSwitching: {
     opacity: 0.3,
+  },
+  cameraOptionsContainer: {
+    position: 'absolute',
+    top: 180,
+    left: 20,
+    right: 20,
+    backgroundColor: 'rgba(10, 10, 10, 0.95)',
+    borderRadius: 15,
+    padding: 20,
+    zIndex: 1000,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  optionsTitle: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 15,
+  },
+  optionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 10,
+    padding: 15,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  optionButtonActive: {
+    backgroundColor: 'rgba(255, 24, 1, 0.3)',
+    borderColor: '#FF1801',
+  },
+  optionIcon: {
+    fontSize: 24,
+    marginRight: 15,
+  },
+  optionText: {
+    color: '#fff',
+    fontSize: 14,
+    flex: 1,
+  },
+  closeButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 10,
+    padding: 12,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  closeButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
