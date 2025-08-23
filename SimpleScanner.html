@@ -160,29 +160,27 @@
         
         /* Result Display with Image */
         #result {
-            position: absolute;
-            top: 60px;
-            left: 15px;
-            right: 15px;
-            background: white;
-            color: black;
-            padding: 12px;
-            border-radius: 8px;
             display: none;
-            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.3);
-            max-height: 50vh;
-            overflow-y: auto;
+            position: fixed;
+            bottom: 160px;
+            left: 10px;
+            right: 10px;
+            background: white;
+            padding: 8px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1002;
+            font-size: 14px;
+            max-height: 100px;
+            overflow: hidden;
         }
         
         #result.success {
-            background: linear-gradient(135deg, #fff 0%, #f0f0f0 100%);
-            color: black;
-            border: 2px solid #4CAF50;
+            border-left: 4px solid #4CAF50;
         }
         
         #result.error {
-            background: #f44336;
-            color: white;
+            border-left: 4px solid #f44336;
         }
         
         .result-header {
@@ -289,151 +287,46 @@
         // F1 LEGO Sets with multiple barcodes per set
         // Each set has multiple codes: American (UPC) and European (EAN) barcodes
         const F1_SETS = {
-            'Ferrari SF-23': {
-                name: 'Ferrari SF-23',
-                setNumber: '76914',
-                pieces: 275,
-                imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt8d2c3b2e0e8e9b6a/76914.png',
-                codes: {
-                    '6536841': 'Charles Leclerc',
-                    '6538305': 'Carlos Sainz',
-                    // Add more codes as discovered
-                }
-            },
-            'Red Bull RB19': {
-                name: 'Red Bull RB19',
-                setNumber: '76915',
-                pieces: 280,
-                imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt3c4a3f3e3e3e3e3e/76915.png',
-                codes: {
-                    '6536842': 'Max Verstappen',
-                    '6538306': 'Sergio Pérez',
-                }
-            },
-            'Mercedes-AMG W14': {
-                name: 'Mercedes-AMG W14',
-                setNumber: '76909',
-                pieces: 264,
-                imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt9b9b9b9b9b9b9b9b/76909.png',
-                codes: {
-                    '6536843': 'Lewis Hamilton',
-                    '6538307': 'George Russell',
-                }
-            },
-            'Aston Martin AMR23': {
-                name: 'Aston Martin AMR23',
-                setNumber: '76910',
-                pieces: 261,
-                imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt7c7c7c7c7c7c7c7c/76910.png',
-                codes: {
-                    '6536844': 'Fernando Alonso',
-                    '6538308': 'Lance Stroll',
-                }
-            },
-            'AlphaTauri AT04': {
-                name: 'AlphaTauri AT04',
-                setNumber: '76920',
-                pieces: 259,
-                imageUrl: 'https://cdn.rebrickable.com/media/sets/76920-1/97453.jpg',
-                codes: {
-                    '6536845': 'Yuki Tsunoda',
-                    '6538309': 'Nyck de Vries',
-                }
-            },
-            'Alfa Romeo C43': {
-                name: 'Alfa Romeo C43',
-                setNumber: '76921',
-                pieces: 257,
-                imageUrl: 'https://cdn.rebrickable.com/media/sets/76921-1/97454.jpg',
-                codes: {
-                    '6536846': 'Valtteri Bottas',
-                    '6538310': 'Zhou Guanyu',
-                }
-            },
-            'Alpine A523': {
-                name: 'Alpine A523',
-                setNumber: '76922',
-                pieces: 262,
-                imageUrl: 'https://cdn.rebrickable.com/media/sets/76922-1/97455.jpg',
-                codes: {
-                    '6536847': 'Pierre Gasly',
-                    '6538311': 'Esteban Ocon',
-                }
-            },
-            'Williams FW45': {
-                name: 'Williams FW45',
-                setNumber: '76923',
-                pieces: 254,
-                imageUrl: 'https://cdn.rebrickable.com/media/sets/76923-1/97456.jpg',
-                codes: {
-                    '6536848': 'Alexander Albon',
-                    '6538312': 'Logan Sargeant',
-                }
-            },
-            'Haas VF-23': {
-                name: 'Haas VF-23',
-                setNumber: '76924',
-                pieces: 255,
-                imageUrl: 'https://cdn.rebrickable.com/media/sets/76924-1/97457.jpg',
-                codes: {
-                    '6536849': 'Kevin Magnussen',
-                    '6538313': 'Nico Hülkenberg',
-                }
-            },
-            'McLaren MCL60': {
-                name: 'McLaren MCL60',
-                setNumber: '76919',
-                pieces: 268,
-                imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt5d5d5d5d5d5d5d5d/76919.png',
-                codes: {
-                    '6536850': 'Lando Norris',
-                    '6538314': 'Oscar Piastri',
-                }
-            },
-            'F1 Generic': {
-                name: 'F1 Generic Car',
-                setNumber: 'F1000',
-                pieces: 250,
-                imageUrl: 'https://cdn.rebrickable.com/media/sets/42141-1/91813.jpg',
-                codes: {
-                    '6536851': 'F1 Driver 1',
-                    '6538315': 'F1 Driver 2',
-                }
-            },
-            'F1 Academy': {
-                name: 'F1 Academy Car',
-                setNumber: 'F2000',
-                pieces: 240,
-                imageUrl: 'https://cdn.rebrickable.com/media/sets/42141-1/91813.jpg',
-                codes: {
-                    '6536852': 'Academy Driver 1',
-                    '6538316': 'Academy Driver 2',
-                }
-            }
+            '6536841': { name: 'Ferrari SF-23', setNumber: '76914', pieces: 275, imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt8d2c3b2e0e8e9b6a/76914.png' },
+            '6538305': { name: 'Ferrari SF-23', setNumber: '76914', pieces: 275, imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt8d2c3b2e0e8e9b6a/76914.png' },
+            '6536842': { name: 'Red Bull RB19', setNumber: '76915', pieces: 280, imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt3c4a3f3e3e3e3e3e/76915.png' },
+            '6538306': { name: 'Red Bull RB19', setNumber: '76915', pieces: 280, imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt3c4a3f3e3e3e3e3e/76915.png' },
+            '6536843': { name: 'Mercedes-AMG W14', setNumber: '76909', pieces: 264, imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt9b9b9b9b9b9b9b9b/76909.png' },
+            '6538307': { name: 'Mercedes-AMG W14', setNumber: '76909', pieces: 264, imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt9b9b9b9b9b9b9b9b/76909.png' },
+            '6536844': { name: 'Aston Martin AMR23', setNumber: '76910', pieces: 261, imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt7c7c7c7c7c7c7c7c/76910.png' },
+            '6538308': { name: 'Aston Martin AMR23', setNumber: '76910', pieces: 261, imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt7c7c7c7c7c7c7c7c/76910.png' },
+            '6536845': { name: 'AlphaTauri AT04', setNumber: '76920', pieces: 259, imageUrl: 'https://cdn.rebrickable.com/media/sets/76920-1/97453.jpg' },
+            '6538309': { name: 'AlphaTauri AT04', setNumber: '76920', pieces: 259, imageUrl: 'https://cdn.rebrickable.com/media/sets/76920-1/97453.jpg' },
+            '6536846': { name: 'Alfa Romeo C43', setNumber: '76921', pieces: 257, imageUrl: 'https://cdn.rebrickable.com/media/sets/76921-1/97454.jpg' },
+            '6538310': { name: 'Alfa Romeo C43', setNumber: '76921', pieces: 257, imageUrl: 'https://cdn.rebrickable.com/media/sets/76921-1/97454.jpg' },
+            '6536847': { name: 'Alpine A523', setNumber: '76922', pieces: 262, imageUrl: 'https://cdn.rebrickable.com/media/sets/76922-1/97455.jpg' },
+            '6538311': { name: 'Alpine A523', setNumber: '76922', pieces: 262, imageUrl: 'https://cdn.rebrickable.com/media/sets/76922-1/97455.jpg' },
+            '6536848': { name: 'Williams FW45', setNumber: '76923', pieces: 254, imageUrl: 'https://cdn.rebrickable.com/media/sets/76923-1/97456.jpg' },
+            '6538312': { name: 'Williams FW45', setNumber: '76923', pieces: 254, imageUrl: 'https://cdn.rebrickable.com/media/sets/76923-1/97456.jpg' },
+            '6536849': { name: 'Haas VF-23', setNumber: '76924', pieces: 255, imageUrl: 'https://cdn.rebrickable.com/media/sets/76924-1/97457.jpg' },
+            '6538313': { name: 'Haas VF-23', setNumber: '76924', pieces: 255, imageUrl: 'https://cdn.rebrickable.com/media/sets/76924-1/97457.jpg' },
+            '6536850': { name: 'McLaren MCL60', setNumber: '76919', pieces: 268, imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt5d5d5d5d5d5d5d5d/76919.png' },
+            '6538314': { name: 'McLaren MCL60', setNumber: '76919', pieces: 268, imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt5d5d5d5d5d5d5d5d/76919.png' },
+            '6536851': { name: 'F1 Generic Car', setNumber: 'F1000', pieces: 250, imageUrl: 'https://cdn.rebrickable.com/media/sets/42141-1/91813.jpg' },
+            '6538315': { name: 'F1 Generic Car', setNumber: 'F1000', pieces: 250, imageUrl: 'https://cdn.rebrickable.com/media/sets/42141-1/91813.jpg' },
+            '6536852': { name: 'F1 Academy Car', setNumber: 'F2000', pieces: 240, imageUrl: 'https://cdn.rebrickable.com/media/sets/42141-1/91813.jpg' },
+            '6538316': { name: 'F1 Academy Car', setNumber: 'F2000', pieces: 240, imageUrl: 'https://cdn.rebrickable.com/media/sets/42141-1/91813.jpg' }
         };
         
-        // Helper function to find set by barcode
+        // Helper function to find set by barcode - ONLY CHECK FIRST 7 DIGITS
         function findSetByCode(code) {
+            // Get first 7 digits only
             const first7 = code.substring(0, 7);
-            const first6 = code.substring(0, 6);
+            console.log(`Scanned full code: ${code}`);
+            console.log(`Checking first 7 digits: ${first7}`);
             
-            console.log(`Looking for code: ${first7} or ${first6}`);
-            
-            for (const [setName, setData] of Object.entries(F1_SETS)) {
-                for (const [barcode, driver] of Object.entries(setData.codes)) {
-                    // Check exact match with first 7 digits
-                    if (barcode === first7) {
-                        console.log(`Found exact match: ${setName} - ${driver}`);
-                        return { ...setData, driver: driver, matchedCode: barcode };
-                    }
-                    // Check if barcode starts with first 6 digits
-                    if (barcode.startsWith(first6)) {
-                        console.log(`Found partial match: ${setName} - ${driver}`);
-                        return { ...setData, driver: driver, matchedCode: barcode };
-                    }
-                }
+            // Direct lookup with first 7 digits
+            if (F1_SETS[first7]) {
+                console.log(`Found match for ${first7}: ${F1_SETS[first7].name}`);
+                return { ...F1_SETS[first7], matchedCode: first7 };
             }
             
+            console.log(`No match found for ${first7}`);
             return null;
         }
         
@@ -616,42 +509,41 @@
             if (f1) {
                 result.className = 'success';
                 result.innerHTML = `
-                    <div class="result-header">
-                        <div class="result-title">🏁 LEGO® Speed Champions</div>
-                    </div>
-                    <div class="lego-preview">
-                        <img src="${f1.imageUrl}" alt="${f1.name}" class="lego-image" onerror="this.src='https://via.placeholder.com/100'">
-                        <div class="lego-details">
-                            <div class="lego-set">${f1.name}</div>
-                            <div class="lego-info">
-                                Set #${f1.setNumber}<br>
-                                ${f1.pieces} pieces<br>
-                                Driver: ${f1.driver}
+                    <div class="lego-preview" style="display: flex; align-items: center; gap: 10px;">
+                        <img src="${f1.imageUrl}" alt="${f1.name}" style="width: 60px; height: 60px; object-fit: contain;" onerror="this.src='https://via.placeholder.com/60'">
+                        <div style="flex: 1;">
+                            <div style="font-weight: bold; font-size: 14px;">${f1.name}</div>
+                            <div style="font-size: 12px; color: #666;">
+                                Set #${f1.setNumber} • ${f1.pieces} pieces
+                            </div>
+                            <div style="font-size: 10px; color: #999; margin-top: 2px;">
+                                Code: ${f1.matchedCode}
                             </div>
                         </div>
                     </div>
-                    <div class="result-code">
-                        Matched Code: ${f1.matchedCode || code.substring(0, 7)}<br>
-                        <small>Full scan: ${code}</small>
-                    </div>
                 `;
                 if (navigator.vibrate) navigator.vibrate(200);
+                
+                // Don't hide the result - keep it visible
+                // setTimeout(() => { result.style.display = 'none'; }, 5000);
             } else {
                 result.className = 'error';
                 result.innerHTML = `
-                    <div class="result-title">Unknown Code</div>
-                    <div class="result-code">
-                        First 7 digits: ${code.substring(0, 7)}<br>
-                        Full scan: ${code}<br>
-                        <small>Not matching any F1 model</small>
+                    <div style="padding: 10px;">
+                        <div style="font-weight: bold; color: #f44336;">Unknown Code</div>
+                        <div style="font-size: 12px; color: #666;">
+                            First 7: ${code.substring(0, 7)}<br>
+                            Full: ${code}
+                        </div>
                     </div>
                 `;
                 console.log(`No match found for: ${code}`);
+                
+                // Hide error after 3 seconds
+                setTimeout(() => {
+                    result.style.display = 'none';
+                }, 3000);
             }
-            
-            setTimeout(() => {
-                result.style.display = 'none';
-            }, 5000);
         }
         
         // Toggle scanning
