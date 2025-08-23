@@ -284,33 +284,48 @@
         const zoomValue = document.getElementById('zoomValue');
         const zoomFill = document.getElementById('zoomFill');
         
-        // F1 LEGO Sets with multiple barcodes per set
-        // Each set has multiple codes: American (UPC) and European (EAN) barcodes
+        // LEGO 71049 F1 Collectibles - Mystery Box codes
+        // European codes (2 per car) and North American codes (1 per car)
         const F1_SETS = {
-            '6536841': { name: 'Ferrari SF-23', setNumber: '76914', pieces: 275, imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt8d2c3b2e0e8e9b6a/76914.png' },
-            '6538305': { name: 'Ferrari SF-23', setNumber: '76914', pieces: 275, imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt8d2c3b2e0e8e9b6a/76914.png' },
-            '6536842': { name: 'Red Bull RB19', setNumber: '76915', pieces: 280, imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt3c4a3f3e3e3e3e3e/76915.png' },
-            '6538306': { name: 'Red Bull RB19', setNumber: '76915', pieces: 280, imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt3c4a3f3e3e3e3e3e/76915.png' },
-            '6536843': { name: 'Mercedes-AMG W14', setNumber: '76909', pieces: 264, imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt9b9b9b9b9b9b9b9b/76909.png' },
-            '6538307': { name: 'Mercedes-AMG W14', setNumber: '76909', pieces: 264, imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt9b9b9b9b9b9b9b9b/76909.png' },
-            '6536844': { name: 'Aston Martin AMR23', setNumber: '76910', pieces: 261, imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt7c7c7c7c7c7c7c7c/76910.png' },
-            '6538308': { name: 'Aston Martin AMR23', setNumber: '76910', pieces: 261, imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt7c7c7c7c7c7c7c7c/76910.png' },
-            '6536845': { name: 'AlphaTauri AT04', setNumber: '76920', pieces: 259, imageUrl: 'https://cdn.rebrickable.com/media/sets/76920-1/97453.jpg' },
-            '6538309': { name: 'AlphaTauri AT04', setNumber: '76920', pieces: 259, imageUrl: 'https://cdn.rebrickable.com/media/sets/76920-1/97453.jpg' },
-            '6536846': { name: 'Alfa Romeo C43', setNumber: '76921', pieces: 257, imageUrl: 'https://cdn.rebrickable.com/media/sets/76921-1/97454.jpg' },
-            '6538310': { name: 'Alfa Romeo C43', setNumber: '76921', pieces: 257, imageUrl: 'https://cdn.rebrickable.com/media/sets/76921-1/97454.jpg' },
-            '6536847': { name: 'Alpine A523', setNumber: '76922', pieces: 262, imageUrl: 'https://cdn.rebrickable.com/media/sets/76922-1/97455.jpg' },
-            '6538311': { name: 'Alpine A523', setNumber: '76922', pieces: 262, imageUrl: 'https://cdn.rebrickable.com/media/sets/76922-1/97455.jpg' },
-            '6536848': { name: 'Williams FW45', setNumber: '76923', pieces: 254, imageUrl: 'https://cdn.rebrickable.com/media/sets/76923-1/97456.jpg' },
-            '6538312': { name: 'Williams FW45', setNumber: '76923', pieces: 254, imageUrl: 'https://cdn.rebrickable.com/media/sets/76923-1/97456.jpg' },
-            '6536849': { name: 'Haas VF-23', setNumber: '76924', pieces: 255, imageUrl: 'https://cdn.rebrickable.com/media/sets/76924-1/97457.jpg' },
-            '6538313': { name: 'Haas VF-23', setNumber: '76924', pieces: 255, imageUrl: 'https://cdn.rebrickable.com/media/sets/76924-1/97457.jpg' },
-            '6536850': { name: 'McLaren MCL60', setNumber: '76919', pieces: 268, imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt5d5d5d5d5d5d5d5d/76919.png' },
-            '6538314': { name: 'McLaren MCL60', setNumber: '76919', pieces: 268, imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt5d5d5d5d5d5d5d5d/76919.png' },
-            '6536851': { name: 'F1 Generic Car', setNumber: 'F1000', pieces: 250, imageUrl: 'https://cdn.rebrickable.com/media/sets/42141-1/91813.jpg' },
-            '6538315': { name: 'F1 Generic Car', setNumber: 'F1000', pieces: 250, imageUrl: 'https://cdn.rebrickable.com/media/sets/42141-1/91813.jpg' },
-            '6536852': { name: 'F1 Academy Car', setNumber: 'F2000', pieces: 240, imageUrl: 'https://cdn.rebrickable.com/media/sets/42141-1/91813.jpg' },
-            '6538316': { name: 'F1 Academy Car', setNumber: 'F2000', pieces: 240, imageUrl: 'https://cdn.rebrickable.com/media/sets/42141-1/91813.jpg' }
+            // European Codes
+            '6536841': { name: 'Ferrari', setNumber: '71049', pieces: 'Mystery Box', imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt4a32bda4358c3b0a/71049_alt1.png' },
+            '6538305': { name: 'Ferrari', setNumber: '71049', pieces: 'Mystery Box', imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt4a32bda4358c3b0a/71049_alt1.png' },
+            '6536842': { name: 'Red Bull RB20', setNumber: '71049', pieces: 'Mystery Box', imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt4a32bda4358c3b0a/71049_alt1.png' },
+            '6538306': { name: 'Red Bull RB20', setNumber: '71049', pieces: 'Mystery Box', imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt4a32bda4358c3b0a/71049_alt1.png' },
+            '6536843': { name: 'Mercedes-AMG', setNumber: '71049', pieces: 'Mystery Box', imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt4a32bda4358c3b0a/71049_alt1.png' },
+            '6538307': { name: 'Mercedes-AMG', setNumber: '71049', pieces: 'Mystery Box', imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt4a32bda4358c3b0a/71049_alt1.png' },
+            '6536844': { name: 'Aston Martin', setNumber: '71049', pieces: 'Mystery Box', imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt4a32bda4358c3b0a/71049_alt1.png' },
+            '6538308': { name: 'Aston Martin', setNumber: '71049', pieces: 'Mystery Box', imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt4a32bda4358c3b0a/71049_alt1.png' },
+            '6536845': { name: 'VCARB (AlphaTauri)', setNumber: '71049', pieces: 'Mystery Box', imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt4a32bda4358c3b0a/71049_alt1.png' },
+            '6538309': { name: 'VCARB (AlphaTauri)', setNumber: '71049', pieces: 'Mystery Box', imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt4a32bda4358c3b0a/71049_alt1.png' },
+            '6536846': { name: 'Sauber (Alfa Romeo)', setNumber: '71049', pieces: 'Mystery Box', imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt4a32bda4358c3b0a/71049_alt1.png' },
+            '6538310': { name: 'Sauber (Alfa Romeo)', setNumber: '71049', pieces: 'Mystery Box', imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt4a32bda4358c3b0a/71049_alt1.png' },
+            '6536847': { name: 'Alpine', setNumber: '71049', pieces: 'Mystery Box', imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt4a32bda4358c3b0a/71049_alt1.png' },
+            '6538311': { name: 'Alpine', setNumber: '71049', pieces: 'Mystery Box', imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt4a32bda4358c3b0a/71049_alt1.png' },
+            '6536848': { name: 'Williams', setNumber: '71049', pieces: 'Mystery Box', imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt4a32bda4358c3b0a/71049_alt1.png' },
+            '6538312': { name: 'Williams', setNumber: '71049', pieces: 'Mystery Box', imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt4a32bda4358c3b0a/71049_alt1.png' },
+            '6536849': { name: 'Haas', setNumber: '71049', pieces: 'Mystery Box', imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt4a32bda4358c3b0a/71049_alt1.png' },
+            '6538313': { name: 'Haas', setNumber: '71049', pieces: 'Mystery Box', imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt4a32bda4358c3b0a/71049_alt1.png' },
+            '6536850': { name: 'McLaren', setNumber: '71049', pieces: 'Mystery Box', imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt4a32bda4358c3b0a/71049_alt1.png' },
+            '6538314': { name: 'McLaren', setNumber: '71049', pieces: 'Mystery Box', imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt4a32bda4358c3b0a/71049_alt1.png' },
+            '6536851': { name: 'F1 Generic', setNumber: '71049', pieces: 'Mystery Box', imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt4a32bda4358c3b0a/71049_alt1.png' },
+            '6538315': { name: 'F1 Generic', setNumber: '71049', pieces: 'Mystery Box', imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt4a32bda4358c3b0a/71049_alt1.png' },
+            '6536852': { name: 'F1 Academy', setNumber: '71049', pieces: 'Mystery Box', imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt4a32bda4358c3b0a/71049_alt1.png' },
+            '6538316': { name: 'F1 Academy', setNumber: '71049', pieces: 'Mystery Box', imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt4a32bda4358c3b0a/71049_alt1.png' },
+            
+            // North American Codes
+            '6538425': { name: 'Ferrari', setNumber: '71049', pieces: 'Mystery Box', imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt4a32bda4358c3b0a/71049_alt1.png' },
+            '6538426': { name: 'Red Bull RB20', setNumber: '71049', pieces: 'Mystery Box', imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt4a32bda4358c3b0a/71049_alt1.png' },
+            '6538427': { name: 'Mercedes-AMG', setNumber: '71049', pieces: 'Mystery Box', imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt4a32bda4358c3b0a/71049_alt1.png' },
+            '6538428': { name: 'Aston Martin', setNumber: '71049', pieces: 'Mystery Box', imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt4a32bda4358c3b0a/71049_alt1.png' },
+            '6538429': { name: 'VCARB (AlphaTauri)', setNumber: '71049', pieces: 'Mystery Box', imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt4a32bda4358c3b0a/71049_alt1.png' },
+            '6538430': { name: 'Sauber (Alfa Romeo)', setNumber: '71049', pieces: 'Mystery Box', imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt4a32bda4358c3b0a/71049_alt1.png' },
+            '6538431': { name: 'Alpine', setNumber: '71049', pieces: 'Mystery Box', imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt4a32bda4358c3b0a/71049_alt1.png' },
+            '6538432': { name: 'Williams', setNumber: '71049', pieces: 'Mystery Box', imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt4a32bda4358c3b0a/71049_alt1.png' },
+            '6538433': { name: 'Haas', setNumber: '71049', pieces: 'Mystery Box', imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt4a32bda4358c3b0a/71049_alt1.png' },
+            '6538434': { name: 'McLaren', setNumber: '71049', pieces: 'Mystery Box', imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt4a32bda4358c3b0a/71049_alt1.png' },
+            '6538435': { name: 'F1 Generic', setNumber: '71049', pieces: 'Mystery Box', imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt4a32bda4358c3b0a/71049_alt1.png' },
+            '6538436': { name: 'F1 Academy', setNumber: '71049', pieces: 'Mystery Box', imageUrl: 'https://www.lego.com/cdn/cs/set/assets/blt4a32bda4358c3b0a/71049_alt1.png' }
         };
         
         // Helper function to find set by barcode - ONLY CHECK FIRST 7 DIGITS
