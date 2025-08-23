@@ -537,6 +537,16 @@
                                 Code: ${f1.matchedCode}
                             </div>
                         </div>
+                        <button onclick="captureScreen('${f1.name}', '${f1.matchedCode}')" style="
+                            background: #4CAF50;
+                            color: white;
+                            border: none;
+                            border-radius: 4px;
+                            padding: 8px 12px;
+                            font-size: 12px;
+                            cursor: pointer;
+                            margin-left: auto;
+                        ">📷 Save</button>
                     </div>
                 `;
                 if (navigator.vibrate) navigator.vibrate(200);
@@ -561,6 +571,70 @@
                     result.style.display = 'none';
                 }, 3000);
             }
+        }
+        
+        // Capture screen with overlay
+        function captureScreen(carName, code) {
+            // Create a canvas
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas size to match video
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            // Draw video frame
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // Add semi-transparent overlay at bottom
+            const overlayHeight = 100;
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.fillRect(0, canvas.height - overlayHeight, canvas.width, overlayHeight);
+            
+            // Add text overlay
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 24px Arial';
+            ctx.fillText(`🏎️ ${carName}`, 20, canvas.height - 60);
+            ctx.font = '18px Arial';
+            ctx.fillText(`Code: ${code}`, 20, canvas.height - 30);
+            ctx.fillText(`LEGO® 71049 F1 Collectibles`, 20, canvas.height - 10);
+            
+            // Add timestamp
+            const now = new Date();
+            ctx.font = '14px Arial';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.fillText(now.toLocaleString(), canvas.width - 200, canvas.height - 10);
+            
+            // Convert to blob and download
+            canvas.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `LEGO_F1_${carName.replace(/\s+/g, '_')}_${code}_${Date.now()}.jpg`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                // Show confirmation
+                const savedMsg = document.createElement('div');
+                savedMsg.innerHTML = '✅ Image saved!';
+                savedMsg.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: #4CAF50;
+                    color: white;
+                    padding: 15px 30px;
+                    border-radius: 8px;
+                    font-size: 18px;
+                    z-index: 9999;
+                    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+                `;
+                document.body.appendChild(savedMsg);
+                setTimeout(() => document.body.removeChild(savedMsg), 2000);
+            }, 'image/jpeg', 0.9);
         }
         
         // Toggle scanning
