@@ -233,6 +233,99 @@
             color: #666;
             line-height: 1.4;
         }
+
+        /* Collection Modal */
+        #collectionModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 9999;
+            overflow-y: auto;
+        }
+        
+        #collectionContent {
+            background: white;
+            margin: 20px auto;
+            padding: 20px;
+            max-width: 500px;
+            border-radius: 12px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+        }
+        
+        .car-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .car-item {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            background: #f9f9f9;
+        }
+        
+        .car-item img {
+            width: 100%;
+            max-width: 120px;
+            height: auto;
+            margin-bottom: 8px;
+        }
+        
+        .car-name {
+            font-weight: bold;
+            font-size: 12px;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        
+        .car-code {
+            font-size: 10px;
+            color: #666;
+        }
+        
+        #listBtn {
+            background: #9C27B0;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -250,6 +343,9 @@
         <div class="status" id="status">Initializing camera...</div>
         
         <div class="controls">
+            <button onclick="toggleScan()" id="scanBtn">Start Scan</button>
+            <button id="listBtn" onclick="showCollection()">📋 Collection</button>
+            
             <div class="zoom-controls">
                 <span class="zoom-label">Zoom: <span id="zoomValue">0%</span></span>
                 <div class="zoom-slider">
@@ -260,7 +356,19 @@
             <div class="button-group">
                 <button class="secondary" onclick="switchCamera()">📷 Switch</button>
                 <button class="secondary" onclick="toggleFlash()" id="flashBtn">💡 Flash</button>
-                <button onclick="toggleScan()" id="scanBtn">Start Scan</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Collection Modal -->
+    <div id="collectionModal" onclick="if(event.target === this) hideCollection()">
+        <div id="collectionContent">
+            <div class="modal-header">
+                <div class="modal-title">🏁 LEGO® F1 Collectibles</div>
+                <button class="close-modal" onclick="hideCollection()">✕</button>
+            </div>
+            <div class="car-grid" id="carGrid">
+                <!-- Will be populated by JavaScript -->
             </div>
         </div>
     </div>
@@ -732,6 +840,39 @@
         
         // Initialize on load
         window.onload = init;
+
+        // Show collection modal
+        function showCollection() {
+            const modal = document.getElementById('collectionModal');
+            const grid = document.getElementById('carGrid');
+            
+            // Get unique cars (no duplicates)
+            const uniqueCars = {};
+            for (const [code, car] of Object.entries(F1_SETS)) {
+                if (!uniqueCars[car.name]) {
+                    uniqueCars[car.name] = { ...car, codes: [code] };
+                } else {
+                    uniqueCars[car.name].codes.push(code);
+                }
+            }
+            
+            // Generate HTML for each unique car
+            grid.innerHTML = Object.values(uniqueCars).map(car => `
+                <div class="car-item">
+                    <img src="${car.imageUrl}" alt="${car.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                    <div style="display:none; font-size: 48px; margin-bottom: 8px;">${car.emoji}</div>
+                    <div class="car-name">${car.name}</div>
+                    <div class="car-code">Codes: ${car.codes.slice(0, 2).join(', ')}</div>
+                </div>
+            `).join('');
+            
+            modal.style.display = 'block';
+        }
+        
+        // Hide collection modal
+        function hideCollection() {
+            document.getElementById('collectionModal').style.display = 'none';
+        }
     </script>
 </body>
 </html>
