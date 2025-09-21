@@ -421,7 +421,6 @@
         <div class="controls">
             <button onclick="toggleScan()" id="scanBtn">Start Scan</button>
             <button id="listBtn" onclick="showCollection()">📋 Collection</button>
-            <button id="stockBtn" onclick="showStockManager()">📦 Stock Manager</button>
             
             <div class="zoom-controls">
                 <span class="zoom-label">Zoom: <span id="zoomValue">0%</span></span>
@@ -1065,8 +1064,39 @@
                     </div>
                     <div style="font-weight: bold; font-size: 12px; color: #333; margin-bottom: 4px;">${car.name}</div>
                     <div style="font-size: 10px; color: #666;">Code: ${car.codes[0]}</div>
-                    <div style="text-align: center; margin-top: 8px; font-size: 12px; color: #666;">
-                        Stock: <span style="font-weight: bold; color: #FF1801;">${stockQuantities[car.name] || 0}</span>
+                    <div style="text-align: center; margin-top: 8px;">
+                        <div style="font-size: 12px; color: #666; margin-bottom: 5px;">Stock:</div>
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <button onclick="changeStock('${car.name}', -1)" style="
+                                background: #ff4444;
+                                color: white;
+                                border: none;
+                                border-radius: 4px;
+                                width: 24px;
+                                height: 24px;
+                                font-size: 14px;
+                                font-weight: bold;
+                                cursor: pointer;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                            ">−</button>
+                            <span style="font-weight: bold; color: #FF1801; font-size: 14px; min-width: 20px; text-align: center;" id="stock-${car.name}">${stockQuantities[car.name] || 0}</span>
+                            <button onclick="changeStock('${car.name}', 1)" style="
+                                background: #44aa44;
+                                color: white;
+                                border: none;
+                                border-radius: 4px;
+                                width: 24px;
+                                height: 24px;
+                                font-size: 14px;
+                                font-weight: bold;
+                                cursor: pointer;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                            ">+</button>
+                        </div>
                     </div>
                 </div>
             `).join('');
@@ -1182,19 +1212,16 @@
             updateCollectionStats();
         }
         
-        // Change stock from stock manager modal
+        // Change stock from collection modal
         function changeStock(carName, change) {
             stockQuantities[carName] = Math.max(0, (stockQuantities[carName] || 0) + change);
             saveStockQuantities();
             
-            // Update the display in stock manager
-            const stockCountElement = document.getElementById(`stockCount-${carName}`);
-            if (stockCountElement) {
-                stockCountElement.textContent = stockQuantities[carName];
+            // Update the display in collection modal
+            const stockElement = document.getElementById(`stock-${carName}`);
+            if (stockElement) {
+                stockElement.textContent = stockQuantities[carName];
             }
-            
-            // Update stock manager stats
-            updateStockManagerStats();
         }
         
         // Change stock from scan result
