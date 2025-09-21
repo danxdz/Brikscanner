@@ -163,17 +163,19 @@
         #result {
             display: none;
             position: fixed;
-            bottom: 170px;
-            left: 10px;
-            right: 10px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             background: white;
-            padding: 8px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
             z-index: 1002;
             font-size: 14px;
-            max-height: 100px;
-            overflow: hidden;
+            max-width: 90vw;
+            max-height: 80vh;
+            overflow-y: auto;
+            width: 400px;
         }
         
         #result.success {
@@ -776,84 +778,88 @@
                 result.className = 'success';
                 const currentStock = stockQuantities[f1.name] || 0;
                 result.innerHTML = `
-                    <div class="lego-preview" style="display: flex; align-items: center; gap: 10px;">
-                        <div style="width: 60px; height: 60px; position: relative; flex-shrink: 0;">
-                            ${f1.imageUrl ? `<img src="${f1.imageUrl}" alt="${f1.name}" style="width: 100%; height: 100%; object-fit: contain; border-radius: 8px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">` : ''}
-                            <div style="${f1.imageUrl ? 'display: none;' : 'display: flex;'} width: 100%; height: 100%; align-items: center; justify-content: center; font-size: 32px; background: ${f1.color}20; border-radius: 8px;">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <div style="width: 120px; height: 120px; margin: 0 auto 15px; position: relative; background: #f8f8f8; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                            ${f1.imageUrl ? `<img src="${f1.imageUrl}" alt="${f1.name}" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">` : ''}
+                            <div style="${f1.imageUrl ? 'display: none;' : 'display: flex;'} width: 100%; height: 100%; align-items: center; justify-content: center; font-size: 48px; background: ${f1.color}20; border-radius: 8px;">
                                 ${f1.emoji}
                             </div>
                         </div>
-                        <div style="flex: 1;">
-                            <div style="font-weight: bold; font-size: 14px; color: #333;">${f1.name}</div>
-                            <div style="font-size: 12px; color: #666;">
-                                Set #${f1.setNumber} • ${f1.pieces}
-                            </div>
-                            <div style="font-size: 10px; color: #999; margin-top: 2px;">
-                                Code: ${f1.matchedCode}
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 8px; margin-top: 8px;">
-                                <label style="display: flex; align-items: center; gap: 4px; font-size: 12px; color: #666; cursor: pointer;">
-                                    <input type="checkbox" ${collection[f1.name] ? 'checked' : ''} onchange="toggleCollectionFromScan('${f1.name}')" style="margin: 0;">
-                                    Add to Collection
-                                </label>
-                            </div>
-                            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 12px; padding: 8px; background: #f5f5f5; border-radius: 8px;">
-                                <span style="font-size: 13px; font-weight: bold; color: #333;">Stock Management:</span>
-                                <div style="display: flex; align-items: center; gap: 6px;">
-                                    <button onclick="changeStockFromScan('${f1.name}', -1)" style="
-                                        background: #ff4444;
-                                        color: white;
-                                        border: none;
-                                        border-radius: 6px;
-                                        width: 28px;
-                                        height: 28px;
-                                        font-size: 16px;
-                                        font-weight: bold;
-                                        cursor: pointer;
-                                        display: flex;
-                                        align-items: center;
-                                        justify-content: center;
-                                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                                    ">−</button>
-                                    <span style="font-size: 16px; font-weight: bold; min-width: 24px; text-align: center; color: #FF1801;" id="scanStock-${f1.name}">${currentStock}</span>
-                                    <button onclick="changeStockFromScan('${f1.name}', 1)" style="
-                                        background: #44aa44;
-                                        color: white;
-                                        border: none;
-                                        border-radius: 6px;
-                                        width: 28px;
-                                        height: 28px;
-                                        font-size: 16px;
-                                        font-weight: bold;
-                                        cursor: pointer;
-                                        display: flex;
-                                        align-items: center;
-                                        justify-content: center;
-                                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                                    ">+</button>
-                                </div>
+                        <h2 style="margin: 0; font-size: 24px; color: #333; font-weight: bold;">${f1.name}</h2>
+                        <p style="margin: 5px 0; font-size: 16px; color: #666;">LEGO® Set #${f1.setNumber}</p>
+                        <p style="margin: 5px 0; font-size: 14px; color: #999;">Code: ${f1.matchedCode}</p>
+                    </div>
+                    
+                    <div style="background: #f8f8f8; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+                            <span style="font-size: 16px; font-weight: bold; color: #333;">📦 Stock: <span id="scanStock-${f1.name}" style="color: #FF1801;">${currentStock}</span></span>
+                            <div style="display: flex; gap: 10px;">
+                                <button onclick="changeStockFromScan('${f1.name}', -1)" style="
+                                    background: #ff4444;
+                                    color: white;
+                                    border: none;
+                                    border-radius: 8px;
+                                    width: 40px;
+                                    height: 40px;
+                                    font-size: 20px;
+                                    font-weight: bold;
+                                    cursor: pointer;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+                                    transition: all 0.2s;
+                                " onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">−</button>
+                                <button onclick="changeStockFromScan('${f1.name}', 1)" style="
+                                    background: #44aa44;
+                                    color: white;
+                                    border: none;
+                                    border-radius: 8px;
+                                    width: 40px;
+                                    height: 40px;
+                                    font-size: 20px;
+                                    font-weight: bold;
+                                    cursor: pointer;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+                                    transition: all 0.2s;
+                                " onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">+</button>
                             </div>
                         </div>
-                        <div style="display: flex; flex-direction: column; gap: 4px; margin-left: 8px;">
-                            <button onclick="captureScreen('${f1.name}', '${f1.matchedCode}')" style="
-                                background: #4CAF50;
-                                color: white;
-                                border: none;
-                                border-radius: 4px;
-                                padding: 8px 12px;
-                                font-size: 12px;
-                                cursor: pointer;
-                            ">📷 Save</button>
-                            <button onclick="unfreezeFrame()" style="
-                                background: #2196F3;
-                                color: white;
-                                border: none;
-                                border-radius: 4px;
-                                padding: 8px 12px;
-                                font-size: 12px;
-                                cursor: pointer;
-                            ">▶️ Continue</button>
-                        </div>
+                        
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px; background: white; border-radius: 8px; border: 2px solid ${collection[f1.name] ? '#4CAF50' : '#e0e0e0'};">
+                            <input type="checkbox" ${collection[f1.name] ? 'checked' : ''} onchange="toggleCollectionFromScan('${f1.name}')" style="margin: 0; width: 20px; height: 20px;">
+                            <span style="font-size: 16px; font-weight: bold; color: #333;">${collection[f1.name] ? '✅ In Collection' : '📋 Add to Collection'}</span>
+                        </label>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="captureScreen('${f1.name}', '${f1.matchedCode}')" style="
+                            flex: 1;
+                            background: #4CAF50;
+                            color: white;
+                            border: none;
+                            border-radius: 8px;
+                            padding: 12px;
+                            font-size: 16px;
+                            font-weight: bold;
+                            cursor: pointer;
+                            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+                        ">📷 Save Image</button>
+                        <button onclick="unfreezeFrame()" style="
+                            flex: 1;
+                            background: #2196F3;
+                            color: white;
+                            border: none;
+                            border-radius: 8px;
+                            padding: 12px;
+                            font-size: 16px;
+                            font-weight: bold;
+                            cursor: pointer;
+                            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+                        ">▶️ Continue</button>
                     </div>
                 `;
                 if (navigator.vibrate) navigator.vibrate(200);
@@ -868,21 +874,27 @@
             } else {
                 result.className = 'error';
                 result.innerHTML = `
-                    <div style="padding: 10px;">
-                        <div style="font-weight: bold; color: #f44336;">Unknown Code</div>
-                        <div style="font-size: 12px; color: #666;">
-                            First 7: ${code.substring(0, 7)}<br>
-                            Full: ${code}
+                    <div style="text-align: center; padding: 20px;">
+                        <div style="font-size: 48px; margin-bottom: 15px;">❌</div>
+                        <h2 style="margin: 0 0 10px; font-size: 20px; color: #f44336;">Unknown Code</h2>
+                        <p style="margin: 5px 0; font-size: 14px; color: #666;">This barcode is not recognized</p>
+                        <div style="background: #f5f5f5; padding: 10px; border-radius: 8px; margin: 15px 0; font-family: monospace; font-size: 12px;">
+                            <div>Code: ${code}</div>
+                            <div>First 7: ${code.substring(0, 7)}</div>
                         </div>
+                        <button onclick="unfreezeFrame()" style="
+                            background: #2196F3;
+                            color: white;
+                            border: none;
+                            border-radius: 8px;
+                            padding: 12px 24px;
+                            font-size: 16px;
+                            font-weight: bold;
+                            cursor: pointer;
+                        ">▶️ Try Again</button>
                     </div>
                 `;
                 console.log(`No match found for: ${code}`);
-                
-                // Hide error after 3 seconds and unfreeze
-                setTimeout(() => {
-                    result.style.display = 'none';
-                    unfreezeFrame();
-                }, 3000);
             }
         }
         
