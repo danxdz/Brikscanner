@@ -32,9 +32,13 @@ A React Native app built with Expo that scans barcodes and identifies F1 car mod
 
 - 📷 **Camera barcode scanning** with real-time detection
 - 🏎️ **F1 model detection** - Recognizes all F1 team codes
+- 📦 **Stock Management** - Track quantities of each F1 set you own
+- ➕➖ **Add/Remove Items** - Manage stock directly when scanning
+- 📊 **Collection Tracking** - Keep track of which sets you've collected
 - 🔍 **Zoom controls** - Pinch or button controls
 - 💡 **Flashlight toggle** - Scan in any lighting
 - ✨ **Dual code recognition** - Each model has 2 unique codes
+- 💾 **Persistent Storage** - Your collection and stock data is saved locally
 
 ## 🏁 Supported F1 Teams
 
@@ -52,6 +56,33 @@ A React Native app built with Expo that scans barcodes and identifies F1 car mod
 | 🟠 McLaren | 6536850 | 6538314 |
 | 🏁 F1 | 6536851 | 6538315 |
 | 🎓 F1 ACADEMY | 6536852 | 6538316 |
+
+## 📦 Stock Management Features
+
+The app now includes a powerful stock management system:
+
+### 🔍 **Scan & Manage**
+- **Scan any F1 LEGO barcode** to identify the set
+- **Add/Remove items** directly from the scan result using + and - buttons
+- **Real-time stock tracking** - see current quantities instantly
+
+### 📊 **Collection Overview**
+- **View all F1 sets** in the collection modal (📋 Collection button)
+- **Manage stock quantities** for each set with + and - controls
+- **Track collection progress** - see how many sets you've collected vs total available
+- **Total stock counter** - know exactly how many F1 items you own
+
+### 💾 **Persistent Storage**
+- **Automatic saving** - all your stock data is saved locally
+- **No internet required** - works offline
+- **Data persists** between app sessions
+
+### 🎯 **How to Use Stock Management**
+1. **Scan a barcode** → See F1 set info with stock controls
+2. **Click +** → Adds 1 to your stock count
+3. **Click -** → Removes 1 from your stock count (minimum 0)
+4. **View collection** → See all stock quantities and manage them
+5. **Everything saves automatically** → No manual saving needed
 
 ## 🔨 Build Your Own APK
 
