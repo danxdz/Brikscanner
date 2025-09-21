@@ -304,6 +304,47 @@
             border-color: #4CAF50;
         }
         
+        .stock-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 8px;
+            padding: 5px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 5px;
+        }
+        
+        .stock-btn {
+            width: 30px;
+            height: 30px;
+            border: none;
+            border-radius: 50%;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .stock-btn.minus {
+            background: #ff4444;
+            color: white;
+        }
+        
+        .stock-btn.plus {
+            background: #44aa44;
+            color: white;
+        }
+        
+        .stock-quantity {
+            font-size: 14px;
+            font-weight: bold;
+            min-width: 30px;
+            text-align: center;
+        }
+        
         .car-checkbox {
             position: absolute;
             top: 5px;
@@ -937,6 +978,11 @@
                     </div>
                     <div style="font-weight: bold; font-size: 12px; color: #333; margin-bottom: 4px;">${car.name}</div>
                     <div style="font-size: 10px; color: #666;">Code: ${car.codes[0]}</div>
+                    <div class="stock-controls">
+                        <button class="stock-btn minus" onclick="changeStock('${car.name}', -1)">−</button>
+                        <span class="stock-quantity" id="stock-${car.name}">${stockQuantities[car.name] || 0}</span>
+                        <button class="stock-btn plus" onclick="changeStock('${car.name}', 1)">+</button>
+                    </div>
                 </div>
             `).join('');
             
@@ -952,6 +998,7 @@
         // Collection tracking
         let collection = JSON.parse(localStorage.getItem('f1Collection') || '{}');
         let scanHistory = JSON.parse(localStorage.getItem('f1ScanHistory') || '[]');
+        let stockQuantities = JSON.parse(localStorage.getItem('f1StockQuantities') || '{}');
         
         // Save collection state
         function saveCollection() {
